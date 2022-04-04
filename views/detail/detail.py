@@ -15,4 +15,4 @@ def detail(target_name):
     if not target_name in folder_names:
         abort(400, description = "Can't find target site.")
     
-    return render_template("detail.html")
+    return render_template("detail.html", target_name = target_name)

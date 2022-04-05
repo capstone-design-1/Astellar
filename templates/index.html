@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="/css/style.css">
     <!-- End layout styles -->
     <link rel="shortcut icon" href="/images/favicon.png" />
+    <link rel="stylesheet" href="/css/custom.css">
   </head>
   <body>
     <div class="container-scroller">
@@ -376,19 +377,19 @@
                       <div class="col-12">
                         <div class="preview-list">
                           {% for data in target_data %}
-                          <div class="preview-item border-bottom">
-                            <div class="preview-thumbnail">
-                              <div class="preview-icon bg-primary">
-                                <i class="mdi mdi-file-document"></i>
+                            <div class="preview-item border-bottom">
+                              <div class="preview-thumbnail">
+                                <div class="preview-icon bg-primary">
+                                  <i class="mdi mdi-file-document"></i>
+                                </div>
+                              </div>
+                              <div class="preview-item-content d-sm-flex flex-grow">
+                                <div class="flex-grow">
+                                  <h6 class="preview-subject"><a href="/detail/{{data['dir_name']}}">{{data["dir_name"]}}</a></h6>
+                                  <p class="text-muted mb-0">{{data["file_count"]}} files</p>
+                                </div>
                               </div>
                             </div>
-                            <div class="preview-item-content d-sm-flex flex-grow">
-                              <div class="flex-grow">
-                                <h6 class="preview-subject">{{data["dir_name"]}}</h6>
-                                <p class="text-muted mb-0">{{data["file_count"]}} files</p>
-                              </div>
-                            </div>
-                          </div>
                           {% endfor %}
                           <!-- <div class="preview-item border-bottom">
                             <div class="preview-thumbnail">

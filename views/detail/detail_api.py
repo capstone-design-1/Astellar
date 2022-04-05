@@ -1,4 +1,5 @@
 from flask import Blueprint, request, abort
+import os
 
 bp = Blueprint("detail-api", __name__, url_prefix = "/detail/api")
 
@@ -9,7 +10,8 @@ def subdomain():
     if target == None:
         abort(400, description = "Parameter 'target' must be needed.")
 
-    
+    os.system('assetfinder '+target+ ' > result.txt')
+
     ## TODO
     ## subdomain 목록 가져오기
     return {

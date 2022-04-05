@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template, current_app, abort
+
 from views.func import getFileNames, getFolderNames
+
 
 bp = Blueprint("detail", __name__, url_prefix = "/detail")
 

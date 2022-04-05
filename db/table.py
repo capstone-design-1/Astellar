@@ -141,12 +141,12 @@ class TodoTable:
     def deleteContext(self, idx: int):
         query = """
             DELETE FROM {table_name}
-            WHERE idx = ?
+            WHERE todo_idx = ?
         """.format(table_name = self.__table_name__)
 
         self.con.cursor().execute(query, (idx, ))
         self.con.commit()
-        
+
 
     def getTodoList(self):
         query = """

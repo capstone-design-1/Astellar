@@ -22,13 +22,14 @@ function getSubdomain(){
     const green_circle_html = `<img src='/images/green-circle.png' width='15px;'>`;
 
     try{
-        subdomain_selector.innerHTML = "";
+        subdomain_selector.innerHTML = "분석중 입니다.";
 
         fetch(`/detail/api/subdomain?target=${target_name}`)
         .then((res) => res.json())
         .then((data) => {
             if(data.result.length != 0){
-
+                subdomain_selector.innerHTML = "";
+                
                 for(let i=0; i<data.result.length; i++){
                     let circle = '';
 

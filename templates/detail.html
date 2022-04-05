@@ -25,7 +25,7 @@
 
   </head>
   <body>
-    <input type="hidden" name="target_name" value="{{target_name}}">
+    <input type="hidden" name="target_name" value="{{return_data['target_name']}}">
     <div class="container-scroller">
       <!-- partial:partials/_sidebar.html -->
       <nav class="sidebar sidebar-offcanvas" id="sidebar">
@@ -375,13 +375,12 @@
                     <div class="row">
                       <div class="col-9">
                         <div class="d-flex align-items-center align-self-start">
-                          <h3 class="mb-0">$12.34</h3>
-                          <p class="text-success ml-2 mb-0 font-weight-medium">+3.5%</p>
+                          <h3 class="mb-0 text-success">{{return_data["file_count"]}}</h3>
                         </div>
                       </div>
                       <div class="col-3">
                         <div class="icon icon-box-success ">
-                          <span class="mdi mdi-arrow-top-right icon-item"></span>
+                          <span class="mdi mdi-arrow-top-right mdi mdi-file-document"></span>
                         </div>
                       </div>
                     </div>
@@ -395,12 +394,11 @@
                     <div class="row">
                       <div class="col-9">
                         <div class="d-flex align-items-center align-self-start">
-                          <h3 class="mb-0">$17.34</h3>
-                          <p class="text-success ml-2 mb-0 font-weight-medium">+11%</p>
+                          <h3 class="mb-0 text-danger">0</h3>
                         </div>
                       </div>
                       <div class="col-3">
-                        <div class="icon icon-box-success">
+                        <div class="icon icon-box-danger">
                           <span class="mdi mdi-arrow-top-right icon-item"></span>
                         </div>
                       </div>

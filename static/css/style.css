@@ -7571,11 +7571,11 @@ sup {
   top: -.5em; }
 
 a {
-  color: #007bff;
-  text-decoration: none;
+  color: #ffffff;
+  text-decoration-line: none;
   background-color: transparent; }
   a:hover {
-    color: #0056b3;
+    color: #6b6b6b;
     text-decoration: underline; }
 
 a:not([href]):not([class]) {

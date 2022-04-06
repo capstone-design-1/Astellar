@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template, current_app
+
 from views.func import getFileNames, getFolderNames
+from db.table import *
 
 bp = Blueprint("index", __name__, url_prefix = "/")
 
@@ -9,9 +11,12 @@ def index():
 
     target_data = []
     folder_names = getFolderNames(save_dir_path)
+    target_site_table = TargetSiteTable()
 
     ##  Get target folder name and file count
     for i, folder_name in enumerate(folder_names):
+        target_site_table.insertDomain(folder_name)
+        
         target_dir = save_dir_path + folder_name
         target_data.append({})
         target_data[i] = {

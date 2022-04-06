@@ -11,8 +11,8 @@
       if (item) {
         todoListItem.append("<li><div class='form-check'><label class='form-check-label'><input class='checkbox' type='checkbox'/>" + item + "<i class='input-helper'></i></label></div><i class='remove mdi mdi-close-circle-outline'></i></li>");
         todoListInput.val("");
+        location.reload();
       }
-
     });
 
     todoListItem.on('change', '.checkbox', function() {
@@ -23,7 +23,7 @@
       }
 
       $(this).closest("li").toggleClass('completed');
-
+      updateState($(this));
     });
 
     todoListItem.on('click', '.remove', function() {

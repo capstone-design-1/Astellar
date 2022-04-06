@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, current_app, abort
+from __init__ import socketio
 
 from views.func import getFileNames, getFolderNames
-
 
 bp = Blueprint("detail", __name__, url_prefix = "/detail")
 
@@ -21,3 +21,7 @@ def detail(target_name):
         "target_name" : target_name,
         "file_count" : len(getFileNames(target_path))
     })
+
+@socketio.on('message')
+def handle_message(data):
+    print('received message: ' + data["data"])

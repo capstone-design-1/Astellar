@@ -26,11 +26,11 @@ def subdomain():
 
         try:
             res = requests.get("http://"+url, timeout=1)
-            result.append({'url' : i, 'status' : str(res)})
+            result.append({'site' : i, 'status_code' : res.status_code})
         except requests.exceptions.Timeout as e:
-            result.append({'url' : i, 'status' : "Timeout"})
+            result.append({'site' : i, 'status_code' : "Timeout"})
         except requests.ConnectionError as e2:
-            result.append({'url' : i, 'status' : "NoResponse"})
+            result.append({'site' : i, 'status_code' : "NoResponse"})
         
 
     f.close()

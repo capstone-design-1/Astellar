@@ -1,2 +1,5 @@
 *.pyc
 database.db
+result.txt
+# macOS
+.DS_Store

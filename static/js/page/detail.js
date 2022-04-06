@@ -60,6 +60,7 @@ window.onload = function(){
 
     var socket = io();
     socket.on('connect', function() {
-        socket.emit('message', {data: 'I\'m connected!'});
+        const target = document.getElementsByName("target_name")[0].value;
+        socket.emit('message', {"target": target});
     });
 }

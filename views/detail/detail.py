@@ -22,35 +22,37 @@ def detail(target_name):
     
     return render_template("detail.html", return_data = {
         "target_name" : target_name,
-        "file_count" : len(getFileNames(target_path))
+        "file_count" : len(getFileNames(target_path)),
+        "monitor_path" : current_app.config["SAVE_DIR_PATH"]
     })
 
 
-# @socketio.on('message')
-# def handle_message(data):
-#     global check
-#     global SAVE_DIR_PATH
-
-#     if target.find("..") != -1:
-#         socketio.emit("error", "Illegal value.")
-#         return
-
-#     target = data["target"]
-#     if not target in getFolderNames(SAVE_DIR_PATH + target):
-#         socketio.emit("error", "Not found target.")
-#         return
+@socketio.on('message')
+def handle_message(data):
+    global check
     
-#     if not target in check.keys():
-#         result = multiprocessing.Process(name="file_monitoring", target=fileMonitoring, args=(SAVE_DIR_PATH + target))
-#         result.start()
-#         check[target] = result
-#     else:
-#         socketio.emit("error", "Already start analyzing.")
+    target = data["target"]
+    SAVE_DIR_PATH = data["monitor_path"]
 
-# @socketio.on("disconnect")
-# def disconnect():
-#     ## TODO 
-#     ## 특정 타켓 멀티프로세싱만 중지 시켜야함.
-#     ## 현재는 모든 타겟의 멀티프로세싱을 중지 시키고 있음.
-#     for key in check.keys():
-#         check[key].terminate()
+    if target.find("..") != -1:
+        socketio.emit("error", "Illegal value.")
+        return
+
+    if not target in getFolderNames(SAVE_DIR_PATH):
+        socketio.emit("error", "Not found target.")
+        return
+    
+    if not target in check.keys():
+        result = multiprocessing.Process(name="file_monitoring", target=fileMonitoring, args=(SAVE_DIR_PATH + target, ))
+        result.start()
+        check[target] = result
+    else:
+        socketio.emit("error", "Already start analyzing.")
+
+@socketio.on("disconnect")
+def disconnect():
+    ## TODO 
+    ## 특정 타켓 멀티프로세싱만 중지 시켜야함.
+    ## 현재는 모든 타겟의 멀티프로세싱을 중지 시키고 있음.
+    for key in check.keys():
+        check[key].terminate()

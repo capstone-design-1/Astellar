@@ -1,6 +1,7 @@
 window.onload = function(){
     const refresh_btn = document.getElementsByClassName("subdomain-refresh-btn");
     const target_name = document.getElementsByName("target_name")[0].value;
+    const monitor_path = document.getElementsByName("monitor_path")[0].value;
 
     if(refresh_btn.length != 0){
         refresh_btn[0].addEventListener("click", () => { searchSubdomain(target_name); });
@@ -8,7 +9,7 @@ window.onload = function(){
 
     var socket = io();
     socket.on('connect', function() {
-        socket.emit('message', {"target": target_name});
+        socket.emit('message', {"target": target_name, "monitor_path" : monitor_path});
     });
 }
 

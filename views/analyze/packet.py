@@ -3,8 +3,8 @@ import json
 
 class Packet:
     def __init__(self, packet_data: str):
-        self.request = self.__set_request_packet(packet_data)
-        self.response = self.__set_response_packet(packet_data)
+        self.request = self.__set_request_packet(packet_data.decode('utf-8'))
+        self.response = self.__set_response_packet(packet_data.decode('utf-8'))
     
 
     def __set_request_packet(self, packet_data) -> dict:
@@ -17,15 +17,15 @@ class Packet:
         index = regex_result.span()[0]
 
         request_packet = packet_data[:index]
-        request_header = request_packet[ : request_packet.find("\n\n")].strip()
+        request_header = request_packet[ : request_packet.find("\r\n\r\n")].strip()
         if request_header.startswith("POST") == True:
-            return_data["body"] = request_packet[request_packet.find("\n\n") : ].strip()
+            return_data["body"] = request_packet[request_packet.find("\r\n\r\n") : ].strip()
         else:
             return_data["body"] = ""
         return_data["header"] = dict()
         method_list = ("GET", "POST", "OPTIONS", "DELETE", "PUT", "CONNECT", "HEAD")
 
-        for header in request_header.split("\n"):
+        for header in request_header.split("\r\n"):
 
             ##  method 및 url 추출
             if header.startswith(method_list) == True:
@@ -40,6 +40,8 @@ class Packet:
 
             ##  그 외 request header 추출
             else:
+                if len(header) == 0:
+                    continue
                 tmp = header.split(": ")
                 return_data["header"][tmp[0]] = tmp[1]
 
@@ -55,11 +57,11 @@ class Packet:
         return_data = dict()
         index = regex_result.span()[0]
         response_packet = packet_data[index : ]
-        response_header = response_packet[ : response_packet.find("\n\n")].strip()
-        return_data["body"] = response_packet[response_packet.find("\n\n") : ].strip()
+        response_header = response_packet[ : response_packet.find("\r\n\r\n")].strip()
+        return_data["body"] = response_packet[response_packet.find("\r\n\r\n") : ].strip()
         return_data["header"] = dict()
 
-        headers = response_header.split("\n")
+        headers = response_header.split("\r\n")
         if headers[0].startswith("HTTP/") == True:
             return_data["status_code"] = headers[0].split(" ")[1]
         else:
@@ -68,6 +70,8 @@ class Packet:
         ## TODO
         ## 중복된 헤더가 있을 경우는??
         for header in headers[1:]:
+            if len(header) == 0:
+                continue
             tmp = header.split(": ")
             return_data["header"][tmp[0]] = tmp[1]
 

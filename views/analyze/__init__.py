@@ -1,12 +1,15 @@
 import time
 import os
+import re
 
 from views.func import getFileNames
 from views.analyze.packet import Packet
+from views.analyze.analyze import Analyze
 
 
 def fileMonitoring(target_folder):
     prev_file_list = set()
+    analyze_obj = Analyze()
 
     while True:
         cur_file_list = set(getFileNames(target_folder))
@@ -18,23 +21,19 @@ def fileMonitoring(target_folder):
         prev_file_list = cur_file_list
 
         for file_name in new_file_name:
-            print(os.path.join(target_folder, file_name))
-            with open(os.path.join(target_folder, file_name), "rb") as data:
-                ## TODO
-                ## 이미지 등 파일을 Packet으로 변환할 때 문제 발생
-                """
-                    Traceback (most recent call last):
-                    File "/usr/lib/python3.8/multiprocessing/process.py", line 315, in _bootstrap
-                        self.run()
-                    File "/usr/lib/python3.8/multiprocessing/process.py", line 108, in run
-                        self._target(*self._args, **self._kwargs)
-                    File "/home/universe/Desktop/Astellar/views/analyze/__init__.py", line 23, in fileMonitoring
-                        packet = Packet(data.read())
-                    File "/home/universe/Desktop/Astellar/views/analyze/packet.py", line 6, in __init__
-                        self.request = self.__set_request_packet(packet_data.decode('utf-8'))
-                    UnicodeDecodeError: 'utf-8' codec can't decode byte 0x80 in position 2057: invalid start byte
-                """
-                packet = Packet(data.read())
+            print("Log: " + os.path.join(target_folder, file_name))
 
+            with open(os.path.join(target_folder, file_name), encoding="utf8", errors='ignore') as data:
+                packet_data = data.read()
+                regex_result = re.search("HTTP\/[0,1,2]{1}.[0,1]{1} \d{3} ", packet_data)
+
+                ##  요청 데이터만 있고 응답이 없는 경우
+                if regex_result == None:
+                    continue
+
+                packet = Packet(packet_data, regex_result)
+                analyze_obj.start(packet)
+
+        print(analyze_obj.wappalyzer_obj.wappalyer_result)
 
         time.sleep(3)

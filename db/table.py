@@ -123,7 +123,7 @@ class SubdomainTable:
         target_idx = target_site_data[0][0]
 
         query = """
-            SELEST FROM {table_name}
+            SELECT * FROM {table_name}
             WHERE target_idx = ?
         """.format(table_name = self.__table_name__)
 

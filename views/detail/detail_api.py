@@ -5,7 +5,7 @@ from db.table import *
 
 bp = Blueprint("detail-api", __name__, url_prefix = "/detail/api")
 
-@bp.route("/setSubdomain", methods=["GET"])
+@bp.route("/subdomain", methods=["GET"])
 def Setsubdomain():
     target = request.args.get("target")
     

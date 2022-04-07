@@ -20,7 +20,7 @@ def createApp():
     app.register_blueprint(index_api.bp)
     createDatabase()
 
-    app.config["SAVE_DIR_PATH"] = "/home/universe/Desktop/git/proxify/logs/"
+    app.config["SAVE_DIR_PATH"] = "/tmp/data"
     app.config["SECRET_KEY"] = "test"
 
     socketio.init_app(app)

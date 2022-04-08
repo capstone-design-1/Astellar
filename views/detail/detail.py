@@ -1,12 +1,14 @@
 from flask import Blueprint, render_template, current_app, abort
 import multiprocessing
-from __init__ import socketio
+import time
 
+from __init__ import socketio
 from views.func import getFileNames, getFolderNames
 from views.analyze import fileMonitoring
 
 bp = Blueprint("detail", __name__, url_prefix = "/detail")
 check = dict()
+alive_response = list()
 
 @bp.route("/<target_name>", methods=["GET"])
 def detail(target_name):
@@ -51,8 +53,27 @@ def handle_message(data):
 
 @socketio.on("disconnect")
 def disconnect():
+    global check
+    global alive_response
+
     ## TODO 
     ## 특정 타켓 멀티프로세싱만 중지 시켜야함.
     ## 현재는 모든 타겟의 멀티프로세싱을 중지 시키고 있음.
-    for key in check.keys():
+    socketio.emit("alive-check")
+
+    # while 1:
+    #     print(">> alive_response: " , alive_response)
+    #     time.sleep(2)
+    key_list = check.keys()
+
+    for key in key_list:
+        print("[Disconnect] " + key)
         check[key].terminate()
+
+@socketio.on("alive-response")
+def aliveResponse(data):
+    global check
+    global alive_response
+
+    if not data["target"] in alive_response:
+        alive_response.append(data["target"])

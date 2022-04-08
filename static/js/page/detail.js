@@ -25,7 +25,7 @@ window.onload = function(){
         try{
             subdomain_selector.innerHTML = "분석중 입니다.";
 
-            fetch(`/detail/api/setSubdomain?target=${target_name}`)
+            fetch(`/detail/api/subdomain?target=${target_name}`)
             .then((res) => res.json())
             .then((data) => {
                 if(data.result.length != 0){

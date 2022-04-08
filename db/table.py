@@ -116,6 +116,7 @@ class SubdomainTable:
         Usage:
             - getSubomain('naver.com')
         """
+
         target_site_data = TargetSiteTable().getDomainInfo(domain)
         if len(target_site_data) == 0:
             return

@@ -1,12 +1,15 @@
 import os
 import json
+import re
 
 class Wappalyzer:
 
-    def __init__(self):
+    def __init__(self, target_site):
         self.asset_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "../../assets/wappalyzer")
         self.wappalyer_result = dict()
-        self.check_tech = {"dom":0, "headers":0, "js":0, "meta":0, "scriptSrc":0, "html":0, "cookies":0, "website":0}
+        # self.tmp_tech_result = list()
+        self.target_site = target_site
+        # self.check_tech = {"dom":0, "headers":0, "js":0, "meta":0, "cookies":0, "website":0}
 
         self.category = self.__set_category()
         self.technology = self.__set_technology()
@@ -32,20 +35,28 @@ class Wappalyzer:
 
     def start(self, request: dict, response: dict):
 
+        ##  다른 Host의 header를 검사하는 경우도 있기 때문에,
+        ##  request header의 Host와 사용자가 정한 target Host가 같을 때만 detectHeader() 함수 실행
+        if request["header"]["Host"] != self.target_site:
+            return
+
         for tech_file_name in self.technology.keys():
             tech_dict = self.technology[tech_file_name]
 
             for tech in tech_dict.keys():
+
+                ##  이미 탐지한 기술은 검사할 필요 없음
+                # if tech in self.tmp_tech_result:
+                #     continue
+
                 tech_info = tech_dict[tech]
 
                 for info in tech_info.keys():
 
-                    ## NOTICE
-                    ## 조건문을 추가하면 self.check_tech 값도 추가해야 함.
                     if info == "dom":
                         continue
 
-                    elif info == "headers":
+                    elif info == "headers" :
                         self.detectHeader(request, response, tech_info[info], tech_info["cats"], tech)
 
                     elif info == "js":
@@ -54,18 +65,12 @@ class Wappalyzer:
                     elif info == "meta":
                         continue
 
-                    elif info == "scriptSrc":
-                        continue
-
-                    elif info == "html":
-                        continue
-
                     elif info == "cookies":
                         self.detectCookie(request, response, tech_info[info], tech_info["cats"], tech)
 
                     elif info == "website":
                         continue
-
+                    
     
     def detectCookie(self, request: dict, response: dict, tech_info: dict, category: list, info: str):
         """ request 패킷에 cookie 값을 검증하는 함수.
@@ -90,6 +95,26 @@ class Wappalyzer:
     
 
     def detectHeader(self, request: dict, response: dict, tech_info: dict, category: list, info: str):
+
+        for header, pattern in tech_info.items():
+
+            if header in request["header"].keys():
+                p = pattern.split("\\;")[0]
+                regex_result = re.search(p, request["header"][header], re.I)
+
+                if regex_result != None:
+                    self.setResult(category, request["header"][header][regex_result.span()[0] : ])
+
+            if header in response["header"].keys():
+                p = pattern.split("\\;")[0]
+                regex_result = re.search(p, response["header"][header].lower(), re.I)
+                
+                if regex_result != None:
+                    self.setResult(category, response["header"][header][regex_result.span()[0] : ])
+
+    ## TODO
+    ## 버전 구하는 기능
+    def detectVersion(self, request: dict, response: dict, regex) -> str:
         pass
 
 
@@ -104,7 +129,18 @@ class Wappalyzer:
         name = self.category[sorted_dict[0][0]]["name"]
 
         if not name in self.wappalyer_result.keys():
-            self.wappalyer_result[name] = list()
+            self.wappalyer_result[name] = dict()
+        
+        # if not info in self.tmp_tech_result:
+        #     self.tmp_tech_result.append(info)
 
-        if not info in self.wappalyer_result[name]:
-            self.wappalyer_result[name].append(info)
+        data = info.split("/")
+        if len(data) > 2:
+            print("[!] 예외 상황 발생 ", info)
+        
+        if not data[0] in self.wappalyer_result[name].keys():
+            self.wappalyer_result[name][data[0]] = ""
+
+        ##  버전 정보 입력
+        if len(data) == 2:
+            self.wappalyer_result[name][data[0]] = data[1]

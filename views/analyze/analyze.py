@@ -7,8 +7,8 @@ from views.analyze.attack_vector import AttackVector
 
 class Analyze:
 
-    def __init__(self):
-        self.wappalyzer_obj = Wappalyzer()
+    def __init__(self, target_site):
+        self.wappalyzer_obj = Wappalyzer(target_site)
         self.attack_vector_obj = AttackVector()
     
     def start(self, packet_data):

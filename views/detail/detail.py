@@ -45,7 +45,7 @@ def handle_message(data):
         return
     
     if not target in check.keys():
-        result = multiprocessing.Process(name="file_monitoring", target=fileMonitoring, args=(SAVE_DIR_PATH + target, ))
+        result = multiprocessing.Process(name="file_monitoring", target=fileMonitoring, args=(SAVE_DIR_PATH, target, ))
         result.start()
         check[target] = result
     else:

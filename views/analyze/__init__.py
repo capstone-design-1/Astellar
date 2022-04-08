@@ -1,0 +1,39 @@
+import time
+import os
+import re
+
+from views.func import getFileNames
+from views.analyze.packet import Packet
+from views.analyze.analyze import Analyze
+
+
+def fileMonitoring(target_folder):
+    prev_file_list = set()
+    analyze_obj = Analyze()
+
+    while True:
+        cur_file_list = set(getFileNames(target_folder))
+
+        if len(prev_file_list) == len(cur_file_list):
+            continue
+        print("new file detect")
+        new_file_name = cur_file_list - prev_file_list
+        prev_file_list = cur_file_list
+
+        for file_name in new_file_name:
+            print("Log: " + os.path.join(target_folder, file_name))
+
+            with open(os.path.join(target_folder, file_name), encoding="utf8", errors='ignore') as data:
+                packet_data = data.read()
+                regex_result = re.search("HTTP\/[0,1,2]{1}.[0,1]{1} \d{3} ", packet_data)
+
+                ##  요청 데이터만 있고 응답이 없는 경우
+                if regex_result == None:
+                    continue
+
+                packet = Packet(packet_data, regex_result)
+                analyze_obj.start(packet)
+
+        print(analyze_obj.wappalyzer_obj.wappalyer_result)
+
+        time.sleep(3)

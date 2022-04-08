@@ -1,0 +1,6 @@
+*.pyc
+database.db
+result.txt
+launch.json
+# macOS
+.DS_Store

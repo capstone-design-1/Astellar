@@ -11,6 +11,10 @@ window.onload = function(){
     socket.on('connect', function() {
         socket.emit('message', {"target": target_name, "monitor_path" : monitor_path});
     });
+    socket.on('alive-check', function() {
+        console.log("alive-check");
+        socket.emit('alive-response', {"target": target_name});
+    });
 }
 
 // function initSubdomain(target_name){

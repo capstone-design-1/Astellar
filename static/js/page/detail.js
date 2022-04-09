@@ -15,6 +15,34 @@ window.onload = function(){
         console.log("alive-check");
         socket.emit('alive-response', {"target": target_name});
     });
+    socket.on("receive", function(res) {
+        const data = res["data"];
+        const key_list = Object.keys(data);
+
+        console.log("[debug] ", data);
+
+        if(key_list.length == 0){
+            clearInterval(get_realtime_data);
+            alert("서버 에러가 발생했습니다. 재시작 해주세요.");
+            return;
+        }
+
+        for(let key of key_list){
+            switch(key){
+                case "packet_count":
+                    setPacketCount(data[key]);
+                    break;
+                case "wappalyzer":
+                    // setWappalyzer(data[key]);
+                    break;
+            }
+        }
+    });
+
+    
+    const get_realtime_data = setInterval(()=> {
+        socket.emit("get_realtime_data", {"target": target_name});
+    }, 3000);
 }
 
 // function initSubdomain(target_name){
@@ -76,3 +104,8 @@ function searchSubdomain(target_name){
     }
 }
 
+
+function setPacketCount(packet_count){
+    const selector = document.getElementsByClassName("packet-count");
+    selector[0].innerHTML = packet_count;
+}

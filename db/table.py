@@ -106,6 +106,33 @@ class SubdomainTable:
         self.con.cursor().execute(query, (target_idx, ))
         self.con.commit()
 
+    
+    def getSubdomain(self, domain: str) -> list:
+        """ subdomain 정보를 가져오기 위한 함수
+
+        Args:
+            - domain: 조회 하려는 서브도메인의 도메인
+        
+        Usage:
+            - getSubomain('naver.com')
+        """
+
+        target_site_data = TargetSiteTable().getDomainInfo(domain)
+        if len(target_site_data) == 0:
+            return
+        
+        target_idx = target_site_data[0][0]
+
+        query = """
+            SELECT * FROM {table_name}
+            WHERE target_idx = ?
+        """.format(table_name = self.__table_name__)
+
+        cur = self.con.cursor()
+        cur.execute(query, (target_idx, ))
+        
+        return cur.fetchall()
+
 
 class TodoTable:
     def __init__(self):

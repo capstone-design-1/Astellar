@@ -70,7 +70,7 @@ function searchSubdomain(target_name){
     const subdomain_selector = document.getElementsByClassName("subdomain-list")[0];
 
     try{
-        subdomain_selector.innerHTML = "분석중 입니다.";
+        subdomain_selector.innerHTML = `분석 중입니다. <div class="lds-ring lds-ring-green"><div></div></div>`;
 
         fetch(`/detail/api/subdomain?target=${target_name}`)
         .then((res) => res.json())
@@ -91,6 +91,7 @@ function searchSubdomain(target_name){
 
 function setSubdomain(data){
     const subdomain_selector = document.getElementsByClassName("subdomain-list")[0];
+    const update_time = document.getElementsByClassName("latest-update")[0];
     const html = `<div class="preview-item border-bottom">
                         <div class="preview-item-content d-sm-flex flex-grow">
                         <div class="flex-grow">
@@ -105,7 +106,8 @@ function setSubdomain(data){
     const green_circle_html = `<img src='/images/green-circle.png' width='15px;'>`;
 
     subdomain_selector.innerHTML = "";
-                
+    update_time.innerHTML = `Latest update: ${data.last_search_time}`;
+
     for(let i=0; i<data.result.length; i++){
         let circle = '';
 

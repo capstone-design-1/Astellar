@@ -1,6 +1,7 @@
 from flask import Blueprint, request, abort, jsonify
 import os
 import requests
+
 from db.table import *
 
 bp = Blueprint("detail-api", __name__, url_prefix = "/detail/api")
@@ -36,9 +37,11 @@ def Setsubdomain():
 
     subdomain_table = SubdomainTable()
     subdomain_table.insertSubdomain(result, target)
+    last_search_time = TargetSiteTable().getDomainInfo(target)[0][2]
 
     return {
-        "result" : result
+        "result" : result,
+        "last_search_time" : last_search_time
     }
 
 @bp.route("/getSubdomain", methods=["GET"])
@@ -51,6 +54,7 @@ def getSubdomain():
 
     subdomain_table = SubdomainTable()
     result = subdomain_table.getSubdomain(target)
+    last_search_time = TargetSiteTable().getDomainInfo(target)[0][2]
 
     for d in result:
         return_data.append({
@@ -59,7 +63,8 @@ def getSubdomain():
         })
 
     return {
-        "result" : return_data
+        "result" : return_data,
+        "last_search_time" : last_search_time
     }
 
 

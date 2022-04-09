@@ -33,7 +33,7 @@ window.onload = function(){
                     setPacketCount(data[key]);
                     break;
                 case "wappalyzer":
-                    // setWappalyzer(data[key]);
+                    setWappalyzer(data[key]);
                     break;
             }
         }
@@ -56,7 +56,7 @@ function initSubdomain(target_name){
                 setSubdomain(data);
             }
             else{
-                alert("서브도메인이 없습니다.");
+                // alert("서브도메인이 없습니다.");
             }
         })
     }
@@ -79,7 +79,7 @@ function searchSubdomain(target_name){
                 setSubdomain(data);
             }
             else{
-                alert("서브도메인이 없습니다.");
+                // alert("서브도메인이 없습니다.");
             }
         })
     }
@@ -125,7 +125,43 @@ function setSubdomain(data){
     }
 }
 
+
 function setPacketCount(packet_count){
     const selector = document.getElementsByClassName("packet-count");
     selector[0].innerHTML = packet_count;
+}
+
+
+function setWappalyzer(data){
+    const selector = document.getElementsByClassName("wappalyer-result")[0];
+    const html = `  <div class="col-sm-3 grid-margin">
+                        <div class="card">
+                            <div class="card-body">
+                                <h3>{{tech_name}}</h3>
+                                <div class="row">
+                                    <div class="col-8 col-sm-12 col-xl-8 my-auto">
+                                        <div class="d-flex d-sm-block d-md-flex align-items-center">
+                                            <h5 class="mb-0">{{detect_list}}</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+    const detect_list = `<h5 class="mb-0">{{detect_name}}</h5>`;
+    
+    selector.innerHTML = "";
+    let template = '';
+
+    for(let key of Object.keys(data)){
+        let detect_list_template = '';
+
+        for(let detect_name of Object.keys(data[key])){
+            detect_list_template += detect_list.replace("{{detect_name}}", detect_name + " " + data[key][detect_name]);
+        }
+
+        template += html.replace("{{tech_name}}", key).replace("{{detect_list}}", detect_list_template);
+    }
+
+    selector.innerHTML = template;
 }

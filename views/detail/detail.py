@@ -25,7 +25,8 @@ def detail(target_name):
     
     return render_template("detail.html", return_data = {
         "target_name" : target_name,
-        "monitor_path" : current_app.config["SAVE_DIR_PATH"]
+        "monitor_path" : current_app.config["SAVE_DIR_PATH"],
+        "dir_name" : folder_names
     })
 
 

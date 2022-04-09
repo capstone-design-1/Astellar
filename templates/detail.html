@@ -26,6 +26,7 @@
   </head>
   <body>
     <input type="hidden" name="target_name" value="{{return_data['target_name']}}">
+    <input type="hidden" name="monitor_path" value="{{return_data['monitor_path']}}">
     <div class="container-scroller">
       <!-- partial:partials/_sidebar.html -->
       <nav class="sidebar sidebar-offcanvas" id="sidebar">
@@ -375,7 +376,11 @@
                     <div class="row">
                       <div class="col-9">
                         <div class="d-flex align-items-center align-self-start">
-                          <h3 class="mb-0 text-success">{{return_data["file_count"]}}</h3>
+                          <h3 class="mb-0 text-success packet-count">
+                            <div class="lds-ring lds-ring-green">
+                                <div></div>
+                            </div>
+                          </h3>
                         </div>
                       </div>
                       <div class="col-3">
@@ -394,7 +399,11 @@
                     <div class="row">
                       <div class="col-9">
                         <div class="d-flex align-items-center align-self-start">
-                          <h3 class="mb-0 text-danger">0</h3>
+                          <h3 class="mb-0 text-danger vuln-count">
+                            <div class="lds-ring lds-ring-red">
+                                <div></div>
+                            </div>
+                          </h3>
                         </div>
                       </div>
                       <div class="col-3">

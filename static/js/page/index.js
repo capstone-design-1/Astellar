@@ -26,7 +26,6 @@ function getTodo(){
     fetch(`/todo/api/get`)
     .then((res) => res.json())
     .then((data) => {
-        console.log(data);
         if(data.length == 0) return;
 
         const todoListItem = $('.todo-list');

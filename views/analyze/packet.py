@@ -1,18 +1,12 @@
-import re
 import json
 
 class Packet:
-    def __init__(self, packet_data: str):
-        self.request = self.__set_request_packet(packet_data)
-        self.response = self.__set_response_packet(packet_data)
-    
+    def __init__(self, packet_data: str, regex_result):
+        self.request = self.__set_request_packet(packet_data, regex_result)
+        self.response = self.__set_response_packet(packet_data, regex_result)
+        
 
-    def __set_request_packet(self, packet_data) -> dict:
-        regex_result = re.search("HTTP\/[0,1,2]{1}.[0,1]{1} \d{3} ", packet_data)
-
-        if regex_result == None:
-            raise
-
+    def __set_request_packet(self, packet_data: str, regex_result) -> dict:
         return_data = dict()
         index = regex_result.span()[0]
 
@@ -40,18 +34,15 @@ class Packet:
 
             ##  그 외 request header 추출
             else:
+                if len(header) == 0:
+                    continue
                 tmp = header.split(": ")
                 return_data["header"][tmp[0]] = tmp[1]
 
         return return_data
     
 
-    def __set_response_packet(self, packet_data) -> dict:
-        regex_result = re.search("HTTP\/[0,1,2]{1}.[0,1]{1} \d{3} ", packet_data)
-
-        if regex_result == None:
-            raise
-        
+    def __set_response_packet(self, packet_data: str, regex_result) -> dict:
         return_data = dict()
         index = regex_result.span()[0]
         response_packet = packet_data[index : ]
@@ -68,6 +59,8 @@ class Packet:
         ## TODO
         ## 중복된 헤더가 있을 경우는??
         for header in headers[1:]:
+            if len(header) == 0:
+                continue
             tmp = header.split(": ")
             return_data["header"][tmp[0]] = tmp[1]
 

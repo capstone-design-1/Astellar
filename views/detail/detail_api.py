@@ -1,11 +1,12 @@
 from flask import Blueprint, request, abort, jsonify
 import os
 import requests
+from db.table import *
 
 bp = Blueprint("detail-api", __name__, url_prefix = "/detail/api")
 
 @bp.route("/subdomain", methods=["GET"])
-def subdomain():
+def Setsubdomain():
     target = request.args.get("target")
     
     if target == None:
@@ -23,7 +24,6 @@ def subdomain():
     
     for i in data:
         url = i
-
         try:
             res = requests.get("http://"+url, timeout=1)
             result.append({'site' : i, 'status_code' : res.status_code})
@@ -32,12 +32,29 @@ def subdomain():
         except requests.ConnectionError as e2:
             result.append({'site' : i, 'status_code' : "NoResponse"})
         
-
     f.close()
+
+    subdomain_table = SubdomainTable()
+    subdomain_table.insertSubdomain(result, target)
 
     return {
         "result" : result
     }
+
+@bp.route("/getSubdomain", methods=["GET"])
+def getSubdomain():
+    target = request.args.get("target")
+    
+    if target == None:
+        abort(400, description = "Parameter 'target' must be needed.")
+
+    subdomain_table = SubdomainTable()
+    result = subdomain_table.getSubdomain(target)
+
+    return {
+        "result" : result
+    }
+
 
 @bp.route("/wappalyzer", methods=["GET"])
 def wappalyzer():

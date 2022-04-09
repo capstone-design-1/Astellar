@@ -44,6 +44,7 @@ def Setsubdomain():
 @bp.route("/getSubdomain", methods=["GET"])
 def getSubdomain():
     target = request.args.get("target")
+    return_data = list()
     
     if target == None:
         abort(400, description = "Parameter 'target' must be needed.")
@@ -51,8 +52,14 @@ def getSubdomain():
     subdomain_table = SubdomainTable()
     result = subdomain_table.getSubdomain(target)
 
+    for d in result:
+        return_data.append({
+            "site" : d[2],
+            "status_code" : d[3]
+        })
+
     return {
-        "result" : result
+        "result" : return_data
     }
 
 

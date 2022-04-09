@@ -1,11 +1,8 @@
-from multiprocessing import shared_memory
-from attr import mutable
 from flask import Blueprint, render_template, current_app, abort
 import multiprocessing
-import time
 
 from __init__ import socketio
-from views.func import getFileNames, getFolderNames
+from views.func import getFolderNames
 from views.analyze import fileMonitoring
 
 bp = Blueprint("detail", __name__, url_prefix = "/detail")

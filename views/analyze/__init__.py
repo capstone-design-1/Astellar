@@ -13,10 +13,9 @@ def fileMonitoring(SAVE_DIR_PATH, target_site, share_memory):
     analyze_obj = Analyze(target_site)
     target_folder = SAVE_DIR_PATH + target_site
 
-
     while True:
         cur_file_list = set(getFileNames(target_folder))
-
+        
         if prev_file_count == len(cur_file_list):
             continue
 

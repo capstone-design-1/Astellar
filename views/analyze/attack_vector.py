@@ -15,6 +15,7 @@ class AttackVector:
         self.__detect_SQLI(request, response)
         self.__detect_CORS(request, response)
         self.__detect_SSRF(request, response)
+        self.__detect_open_redirect(request, response)
     
 
     def __set_target(self):
@@ -148,14 +149,41 @@ class AttackVector:
                     })
 
 
-    def __set_result(self, data: dict):
-        detect_name = data["detect_name"]
-        cur_path = data["url"].split("?")[0]
+    def __detect_open_redirect(self, request: dict, response: dict):
+        regex = "^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$"
+        query = urlparse(request["url"]).query
 
-        for result in self.attack_vector_result:
+        if len(query) == 0:
+            return
 
-            result_path = result["url"].split("?")[0]
-            if detect_name == result["detect_name"] and cur_path == result_path:
+        for q in query.split("&"):
+            data = q.split("=")
+
+            if len(data) != 2:
                 return
+
+            regex_result = re.search(regex, data[1])
+            if regex_result != None:
+                self.__set_result({
+                    "detect_name" : "Open Redirect",
+                    "method" : request["method"],
+                    "url" : self.target_host + request["url"],
+                    "body" : "",
+                    "vuln_parameter" : data[0],
+                    "risk" : "medium",
+                    "file_name" : self.file_name,
+                    "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery"
+                })
+
+
+    def __set_result(self, data: dict):
+        # detect_name = data["detect_name"]
+        # cur_path = data["url"].split("?")[0]
+
+        # for result in self.attack_vector_result:
+
+        #     result_path = result["url"].split("?")[0]
+        #     if detect_name == result["detect_name"] and cur_path == result_path:
+        #         return
         
         self.attack_vector_result.append(data)

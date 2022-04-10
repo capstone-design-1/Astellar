@@ -183,7 +183,7 @@ function setAttackVector(data){
     const html = `<tr>
                     <td width="200px"> {{detect_name}} </td>
                     <td width="200px"> <div class="badge badge-success">{{method}}</div> </td>
-                    <td width="200px"> {{url}} </td>
+                    <td width="200px"> <a href="{{url}}" target="_blank">{{url}}</a> </td>
                     <td width="200px"> {{vuln_parameter}} </td>
                     <td width="200px"> {{risk}} </td>
                 </tr>`;
@@ -204,7 +204,7 @@ function setAttackVector(data){
 
         template += html.replace("{{detect_name}}", analyze["detect_name"])
                         .replace("{{method}}", analyze["method"])
-                        .replace("{{url}}", analyze["url"])
+                        .replace(/{{url}}/g, analyze["url"])
                         .replace("{{vuln_parameter}}", analyze["vuln_parameter"])
                         .replace("{{risk}}", risk);
     }

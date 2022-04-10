@@ -17,6 +17,7 @@ def fileMonitoring(SAVE_DIR_PATH, target_site, share_memory):
         cur_file_list = set(getFileNames(target_folder))
         
         if prev_file_count == len(cur_file_list):
+            time.sleep(3)
             continue
 
         # print("new file detect")
@@ -36,11 +37,10 @@ def fileMonitoring(SAVE_DIR_PATH, target_site, share_memory):
                     continue
 
                 packet = Packet(packet_data, regex_result)
-                analyze_obj.start(packet)
+                analyze_obj.start(packet, file_name)
 
         share_memory[target_site] = {
             "wappalyzer" : analyze_obj.wappalyzer_obj.wappalyer_result,
+            "attack_vector" : analyze_obj.attack_vector_obj.attack_vector_result,
             "packet_count" : prev_file_count
         }
-
-        time.sleep(3)

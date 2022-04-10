@@ -1,7 +1,33 @@
 import json
+from urllib.parse import urlparse
 
 class Packet:
     def __init__(self, packet_data: str, regex_result):
+        """
+            request = {
+                "method" : "POST",
+                "url" : "http://casper.or.kr/dashboard?idx=1",
+                "http_protocol" : "HTTP/1.1",
+                "header" : {
+                    "Host" : "casper.or.kr",
+                    "Cookies" : "test=1; php=asdf; aaaa=bbbb",
+                    "User-Agent" : "asdf",
+                    ...
+                },
+                "body" : "id=admin&pw=admin"
+            }
+
+            response = {
+                "status_code" : 200,
+                "header" : {
+                    "Set-Cookie" : "asdf=asdf",
+                    "Server" : "apache"
+                    ...
+                },
+                "body" : "<html><head><title>test</title></head><body>This is sample data ...."
+            } 
+        
+        """
         self.request = self.__set_request_packet(packet_data, regex_result)
         self.response = self.__set_response_packet(packet_data, regex_result)
         
@@ -28,8 +54,18 @@ class Packet:
                 if len(tmp) != 3:
                     raise
                 
+                url_parse = urlparse(tmp[1])
+                if len(url_parse.path) == 0:
+                    return_data["url"] = "/"
+                else:
+                    return_data["url"] = url_parse.path
+                
+                if len(url_parse.query) != 0:
+                    return_data["url"] += "?" + url_parse.query
+                if len(url_parse.fragment) != 0:
+                    return_data["url"] += "?" + url_parse.fragment
+
                 return_data["method"] = tmp[0]
-                return_data["url"] = tmp[1]
                 return_data["http_protocol"] = tmp[2]
 
             ##  그 외 request header 추출

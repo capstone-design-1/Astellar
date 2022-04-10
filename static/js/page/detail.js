@@ -35,6 +35,10 @@ window.onload = function(){
                 case "wappalyzer":
                     setWappalyzer(data[key]);
                     break;
+                case "attack_vector":
+                    setAttackVectorCount(data[key].length);
+                    setAttackVector(data[key]);
+                    break;
             }
         }
     });
@@ -45,47 +49,47 @@ window.onload = function(){
     }, 3000);
 
     initSubdomain(target_name);
-}
 
-function initSubdomain(target_name){
-    try{
-        fetch(`/detail/api/getSubdomain?target=${target_name}`)
-        .then((res) => res.json())
-        .then((data) => {
-            if(data.result.length != 0){
-                setSubdomain(data);
-            }
-            else{
-                // alert("서브도메인이 없습니다.");
-            }
-        })
+    function initSubdomain(target_name){
+        try{
+            fetch(`/detail/api/getSubdomain?target=${target_name}`)
+            .then((res) => res.json())
+            .then((data) => {
+                if(data.result.length != 0){
+                    setSubdomain(data);
+                }
+                else{
+                    // alert("서브도메인이 없습니다.");
+                }
+            })
+        }
+        catch (error){
+            alert("서브도메인 목록을 가져오는 과정에서 에러가 발생했습니다.");
+            console.log(error);
+        }
     }
-    catch (error){
-        alert("서브도메인 목록을 가져오는 과정에서 에러가 발생했습니다.");
-        console.log(error);
-    }
-}
-
-function searchSubdomain(target_name){
-    const subdomain_selector = document.getElementsByClassName("subdomain-list")[0];
-
-    try{
-        subdomain_selector.innerHTML = `분석 중입니다. <div class="lds-ring lds-ring-green"><div></div></div>`;
-
-        fetch(`/detail/api/subdomain?target=${target_name}`)
-        .then((res) => res.json())
-        .then((data) => {
-            if(data.result.length != 0){
-                setSubdomain(data);
-            }
-            else{
-                // alert("서브도메인이 없습니다.");
-            }
-        })
-    }
-    catch (error){
-        alert("서브도메인 목록을 가져오는 과정에서 에러가 발생했습니다.");
-        console.log(error);
+    
+    function searchSubdomain(target_name){
+        const subdomain_selector = document.getElementsByClassName("subdomain-list")[0];
+    
+        try{
+            subdomain_selector.innerHTML = `분석 중입니다. <div class="lds-ring lds-ring-green"><div></div></div>`;
+    
+            fetch(`/detail/api/subdomain?target=${target_name}`)
+            .then((res) => res.json())
+            .then((data) => {
+                if(data.result.length != 0){
+                    setSubdomain(data);
+                }
+                else{
+                    // alert("서브도메인이 없습니다.");
+                }
+            })
+        }
+        catch (error){
+            alert("서브도메인 목록을 가져오는 과정에서 에러가 발생했습니다.");
+            console.log(error);
+        }
     }
 }
 
@@ -164,4 +168,47 @@ function setWappalyzer(data){
     }
 
     selector.innerHTML = template;
+}
+
+function setAttackVectorCount(count){
+    const selector = document.getElementsByClassName("vuln-count")[0];
+    selector.innerHTML = count;
+}
+
+function setAttackVector(data){
+    const selector = document.getElementsByClassName("attack-vector-result")[0].querySelector("tbody");
+    const risk_low = `<div class="badge badge-outline-success">Low</div>`;
+    const risk_medium = `<div class="badge badge-outline-warning">Medium</div>`;
+    const risk_high = `<div class="badge badge-outline-danger">High</div>`;
+    const html = `<tr>
+                    <td width="200px"> {{detect_name}} </td>
+                    <td width="200px"> <div class="badge badge-success">{{method}}</div> </td>
+                    <td width="200px"> {{url}} </td>
+                    <td width="200px"> {{vuln_parameter}} </td>
+                    <td width="200px"> {{risk}} </td>
+                </tr>`;
+    
+    let template = ``;
+
+    for(const analyze of data){
+        let risk = ``;
+        if(analyze["risk"] == "low"){
+            risk = risk_low;
+        }
+        else if(analyze["risk"] == "medium"){
+            risk = risk_medium;
+        }
+        else{
+            risk = risk_high;
+        }
+
+        template += html.replace("{{detect_name}}", analyze["detect_name"])
+                        .replace("{{method}}", analyze["method"])
+                        .replace("{{url}}", analyze["url"])
+                        .replace("{{vuln_parameter}}", analyze["vuln_parameter"])
+                        .replace("{{risk}}", risk);
+    }
+
+    selector.innerHTML = template;
+    
 }

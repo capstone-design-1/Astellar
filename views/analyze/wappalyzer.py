@@ -37,7 +37,7 @@ class Wappalyzer:
 
         ##  다른 Host의 header를 검사하는 경우도 있기 때문에,
         ##  request header의 Host와 사용자가 정한 target Host가 같을 때만 detectHeader() 함수 실행
-        if request["header"]["Host"] != self.target_site:
+        if not "Host" in request["header"].keys() or request["header"]["Host"] != self.target_site:
             return
 
         for tech_file_name in self.technology.keys():

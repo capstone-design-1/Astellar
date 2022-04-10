@@ -1,5 +1,4 @@
-import sqlite3 as sql
-from flask import abort
+import datetime
 
 from db.connect import dbConnection
 
@@ -53,6 +52,18 @@ class TargetSiteTable:
         cur.execute(query, (domain, ))
         
         return cur.fetchall()
+    
+
+    def updateSearchTime(self, domain: str):
+        now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        query = """
+            UPDATE {table_name}
+            SET subdomain_search_time = '{now}'
+            WHERE domain = ?
+        """.format(table_name = self.__table_name__, now = now)
+
+        self.con.cursor().execute(query, (domain, ))
+        self.con.commit()
 
 
 class SubdomainTable:
@@ -86,6 +97,8 @@ class SubdomainTable:
         
         target_idx = target_site_data[0][0]
         self.deleteSubdomain(target_idx)
+
+        TargetSiteTable().updateSearchTime(domain)
 
         query = """
             INSERT INTO {table_name} (subdomain, status_code, target_idx)

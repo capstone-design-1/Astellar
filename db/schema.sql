@@ -1,6 +1,7 @@
 CREATE TABLE target_site (
-    target_idx          INTEGER PRIMARY KEY AUTOINCREMENT,
-    domain              TEXT NOT NULL
+    target_idx              INTEGER PRIMARY KEY AUTOINCREMENT,
+    domain                  TEXT NOT NULL,
+    subdomain_search_time   TEXT
 );
 
 CREATE TABLE subdomain (

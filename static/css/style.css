@@ -8604,8 +8604,8 @@ pre {
   background-color: #000000; }
 
 .table-hover tbody tr:hover {
-  color: #212529;
-  background-color: #000000; }
+  color: #ffffff;
+  background-color: #444444; }
 
 .table-primary,
 .table-primary > th,
@@ -17882,7 +17882,7 @@ div.tagsinput {
 /* Tables */
 .table, .jsgrid .jsgrid-table {
   margin-bottom: 0;
-  color: #6c7293; }
+  color: #ffffff; }
   .table thead th, .jsgrid .jsgrid-table thead th {
     border-top: 0;
     border-bottom-width: 1px;
@@ -17896,7 +17896,9 @@ div.tagsinput {
     vertical-align: middle;
     font-size: 0.875rem;
     line-height: 1;
-    white-space: nowrap; }
+    white-space: nowrap; 
+    /* word-wrap: break-word; */
+  }
     .table th img, .jsgrid .jsgrid-table th img,
     .table td img,
     .jsgrid .jsgrid-table td img {

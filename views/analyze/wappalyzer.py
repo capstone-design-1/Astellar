@@ -37,8 +37,8 @@ class Wappalyzer:
 
         ##  다른 Host의 header를 검사하는 경우도 있기 때문에,
         ##  request header의 Host와 사용자가 정한 target Host가 같을 때만 detectHeader() 함수 실행
-        if request["header"]["Host"] != self.target_site:
-            return
+        # if not "Host" in request["header"].keys() or request["header"]["Host"] != self.target_site:
+        #     return
 
         for tech_file_name in self.technology.keys():
             tech_dict = self.technology[tech_file_name]
@@ -66,18 +66,17 @@ class Wappalyzer:
                         continue
 
                     elif info == "cookies":
-                        self.detectCookie(request, response, tech_info[info], tech_info["cats"], tech)
+                        self.detectCookie(request, tech_info[info], tech_info["cats"], tech)
 
                     elif info == "website":
                         continue
                     
     
-    def detectCookie(self, request: dict, response: dict, tech_info: dict, category: list, info: str):
+    def detectCookie(self, request: dict, tech_info: dict, category: list, info: str):
         """ request 패킷에 cookie 값을 검증하는 함수.
 
         Args:
             - request:   request 패킷 정보
-            - response:  response 패킷 정보
             - tech_info: cookie 값 검증을 위한 정규 표현식 정보가 들어 있음.
             - category:  해당 분석 정보가 어느 부분인지(backend 언어 인지 frontend 언어 인지 구분을 위한 카테고리) 분류 번호가 들어 있음
             - info:      php 인지 nuxt.js 인지 등을 구분하기 위한 값.

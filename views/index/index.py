@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, current_app
+import favicon
 
 from views.func import getFileNames, getFolderNames
 from db.table import *
@@ -19,9 +20,18 @@ def index():
         
         target_dir = save_dir_path + folder_name
         target_data.append({})
+
+        try:
+            favicon_url = favicon.get("http://" + folder_name)[0].url
+        except:
+            favicon_url = "/images/favicon.png"
+
         target_data[i] = {
             "dir_name" : folder_name,
-            "file_count" : len(getFileNames(target_dir))
+            "file_count" : len(getFileNames(target_dir)),
+            "favicon_url" : favicon_url
         }
+
+
 
     return render_template("index.html", target_data=target_data)

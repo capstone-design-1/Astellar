@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 import re
+import datetime
 
 
 class AttackVector:
@@ -60,7 +61,9 @@ class AttackVector:
                     "body" : request["body"],
                     "vuln_parameter" : "",
                     "risk" : return_risk,
-                    "file_name" : self.file_name
+                    "file_name" : self.file_name,
+                    "reference" : "",
+                    "detect_time" : datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 })
         
 
@@ -97,7 +100,9 @@ class AttackVector:
                     "body" : request["body"],
                     "vuln_parameter" : data[0],
                     "risk" : "high",
-                    "file_name" : self.file_name
+                    "file_name" : self.file_name,
+                    "reference" : "",
+                    "detect_time" : datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 })
 
         else:
@@ -113,7 +118,8 @@ class AttackVector:
                         "vuln_parameter" : data[0],
                         "risk" : "high",
                         "file_name" : self.file_name,
-                        "reference" : ""
+                        "reference" : "",
+                        "detect_time" : datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     })
     
 
@@ -128,7 +134,8 @@ class AttackVector:
                     "vuln_parameter" : key,
                     "risk" : "low",
                     "file_name" : self.file_name,
-                    "reference" : "https://guleum-zone.tistory.com/169"
+                    "reference" : "https://guleum-zone.tistory.com/169",
+                    "detect_time" : datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 })
                 break
     
@@ -159,7 +166,8 @@ class AttackVector:
                     "vuln_parameter" : "",
                     "risk" : "medium",
                     "file_name" : self.file_name,
-                    "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery"
+                    "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery",
+                    "detect_time" : datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 })
 
         else:
@@ -179,7 +187,8 @@ class AttackVector:
                         "vuln_parameter" : data[0],
                         "risk" : "medium",
                         "file_name" : self.file_name,
-                        "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery"
+                        "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery",
+                        "detect_time" : datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     })
 
 
@@ -206,7 +215,8 @@ class AttackVector:
                     "vuln_parameter" : data[0],
                     "risk" : "medium",
                     "file_name" : self.file_name,
-                    "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery"
+                    "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery",
+                    "detect_time" : datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 })
 
 

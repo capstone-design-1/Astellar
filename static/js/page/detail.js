@@ -1,3 +1,5 @@
+let prev_attack_vector = [];
+
 window.onload = function(){
     const refresh_btn = document.getElementsByClassName("subdomain-refresh-btn");
     const target_name = document.getElementsByName("target_name")[0].value;
@@ -171,10 +173,17 @@ function setAttackVectorCount(count){
 
 function setAttackVector(data){
     const selector = document.getElementsByClassName("attack-vector-result")[0].querySelector("tbody");
+
+    if(prev_attack_vector.length == 0){
+        selector.innerHTML = '';
+    }
+    if(prev_attack_vector.length == data.length){
+        return;
+    }
     const risk_low = `<div class="badge badge-outline-success">Low</div>`;
     const risk_medium = `<div class="badge badge-outline-warning">Medium</div>`;
     const risk_high = `<div class="badge badge-outline-danger">High</div>`;
-    const html = `<tr>
+    const html = `<tr data-toggle="modal" data-target="#exampleModalCenter" onclick='setModal(this);' data-value='{{data-value}}'>
                     <td width="200px"> {{detect_name}} </td>
                     <td width="200px"> <div class="badge badge-success">{{method}}</div> </td>
                     <td width="200px"> <a href="{{full_url}}" target="_blank">{{url}}</a> </td>
@@ -184,8 +193,13 @@ function setAttackVector(data){
                 </tr>`;
     
     let template = ``;
-
+    let count = 0;
     for(const analyze of data){
+        if(prev_attack_vector.length > count){
+            count++;
+            continue;
+        }
+
         let risk = ``;
         if(analyze["risk"] == "low"){
             risk = risk_low;
@@ -206,9 +220,19 @@ function setAttackVector(data){
                         .replace("{{url}}",path)
                         .replace("{{vuln_parameter}}", analyze["vuln_parameter"])
                         .replace("{{risk}}", risk)
-                        .replace("{{time}}", analyze["detect_time"]);
+                        .replace("{{time}}", analyze["detect_time"])
+                        .replace("{{data-value}}", JSON.stringify(analyze));
     }
 
-    selector.innerHTML = template;
-    
+    selector.innerHTML += template;
+    prev_attack_vector = data;
+}
+
+
+function setModal(e){
+    const data = JSON.parse(e.dataset.value);
+    const modal_title = document.getElementsByClassName("modal-title")[0];
+    const modal_body = document.getElementsByClassName("modal-body")[0];
+
+    modal_body.innerHTML = data["url"];
 }

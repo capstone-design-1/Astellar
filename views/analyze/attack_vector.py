@@ -16,7 +16,7 @@ class AttackVector:
         self.__set_target()
         self.__detect_SQLI(request, response)
         self.__detect_CORS(request, response)
-        self.__detect__XSS(request, response)
+        self.__detect__reflectXSS(request, response)
         self.__detect_SSRF(request, response)
         self.__detect_open_redirect(request, response)
 

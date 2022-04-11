@@ -180,6 +180,7 @@ function setAttackVector(data){
                     <td width="200px"> <a href="{{full_url}}" target="_blank">{{url}}</a> </td>
                     <td width="200px"> {{vuln_parameter}} </td>
                     <td width="200px"> {{risk}} </td>
+                    <td width="200px"> {{time}} </td>
                 </tr>`;
     
     let template = ``;
@@ -204,7 +205,8 @@ function setAttackVector(data){
                         .replace("{{full_url}}", analyze["url"])
                         .replace("{{url}}",path)
                         .replace("{{vuln_parameter}}", analyze["vuln_parameter"])
-                        .replace("{{risk}}", risk);
+                        .replace("{{risk}}", risk)
+                        .replace("{{time}}", analyze["detect_time"]);
     }
 
     selector.innerHTML = template;

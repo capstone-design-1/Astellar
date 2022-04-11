@@ -1,5 +1,7 @@
+from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 import re
+
 
 class AttackVector:
     def __init__(self):
@@ -14,8 +16,10 @@ class AttackVector:
         self.__set_target()
         self.__detect_SQLI(request, response)
         self.__detect_CORS(request, response)
+        self.__detect__XSS(request, response)
         self.__detect_SSRF(request, response)
         self.__detect_open_redirect(request, response)
+
     
 
     def __set_target(self):
@@ -29,6 +33,36 @@ class AttackVector:
         else:
             self.target_host = host_info
 
+
+    def __detect__reflectXSS(self, request : dict, response: dict):
+        #response 예외처리하기
+        soup = BeautifulSoup(response["body"])
+        input_tag = soup.find_all("input")
+        textarea_tag = soup.find_all("textarea")
+
+        if(input_tag == None and textarea_tag == None):
+            return
+
+        high_risk = ["email", "file", "password", "submit", "text", "link", "url", "search"]
+        return_risk = "low"
+        for tag in input_tag:
+            if tag["type"] in high_risk :
+                return_risk = "high"
+                break
+        
+        if textarea_tag :
+            return_risk = "high"
+        
+        self.__set_result({
+                    "detect_name" : "Reflect XSS",
+                    "method" : request["method"],
+                    "url" : self.target_host + request["url"],
+                    "body" : request["body"],
+                    "vuln_parameter" : "",
+                    "risk" : return_risk,
+                    "file_name" : self.file_name
+                })
+        
 
     def __detect_SQLI(self, request: dict, response: dict):
         """ SQL injection을 탐지하기 위한 함수
@@ -177,13 +211,13 @@ class AttackVector:
 
 
     def __set_result(self, data: dict):
-        # detect_name = data["detect_name"]
-        # cur_path = data["url"].split("?")[0]
+        detect_name = data["detect_name"]
+        cur_path = data["url"].split("?")[0]
 
-        # for result in self.attack_vector_result:
+        for result in self.attack_vector_result:
 
-        #     result_path = result["url"].split("?")[0]
-        #     if detect_name == result["detect_name"] and cur_path == result_path:
-        #         return
+            result_path = result["url"].split("?")[0]
+            if detect_name == result["detect_name"] and cur_path == result_path:
+                return
         
         self.attack_vector_result.append(data)

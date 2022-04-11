@@ -6,7 +6,7 @@ class Packet:
         """
             request = {
                 "method" : "POST",
-                "url" : "http://casper.or.kr/dashboard?idx=1",
+                "url" : "/dashboard?idx=1",
                 "http_protocol" : "HTTP/1.1",
                 "header" : {
                     "Host" : "casper.or.kr",
@@ -73,7 +73,13 @@ class Packet:
                 if len(header) == 0:
                     continue
                 tmp = header.split(": ")
-                return_data["header"][tmp[0]] = tmp[1]
+
+                if len(tmp) == 1:
+                    return_data["header"][tmp[0]] = ""
+                elif len(tmp) == 2:
+                    return_data["header"][tmp[0]] = tmp[1]
+                else:
+                    continue
 
         return return_data
     
@@ -98,7 +104,13 @@ class Packet:
             if len(header) == 0:
                 continue
             tmp = header.split(": ")
-            return_data["header"][tmp[0]] = tmp[1]
+            
+            if len(tmp) == 1:
+                    return_data["header"][tmp[0]] = ""
+            elif len(tmp) == 2:
+                return_data["header"][tmp[0]] = tmp[1]
+            else:
+                continue
 
         return return_data
     

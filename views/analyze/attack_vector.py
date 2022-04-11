@@ -1,4 +1,7 @@
 from bs4 import BeautifulSoup
+from urllib.parse import urlparse
+import re
+
 
 class AttackVector:
     def __init__(self):
@@ -10,13 +13,16 @@ class AttackVector:
     def start(self, request: dict, response: dict, file_name: str):
         self.file_name = file_name
 
-        self.__set_target_and_port()
+        self.__set_target()
         self.__detect_SQLI(request, response)
         self.__detect_CORS(request, response)
         self.__detect__XSS(request, response)
+        self.__detect_SSRF(request, response)
+        self.__detect_open_redirect(request, response)
+
     
 
-    def __set_target_and_port(self):
+    def __set_target(self):
         host_info = self.file_name.split("-")[0]
         tmp = host_info.split(":")
 
@@ -125,6 +131,83 @@ class AttackVector:
                     "reference" : "https://guleum-zone.tistory.com/169"
                 })
                 break
+    
+
+    def __detect_SSRF(self, request: dict, response: dict):
+        regex = "^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$"
+
+        if request["method"] == "GET":
+            query = urlparse(request["url"]).query
+
+            if len(query) == 0:
+                return
+
+        elif request["method"] == "POST":
+            query = request["body"]
+
+        else: return
+
+
+        if "Content-Type" in response["header"].keys() and response["header"]["Content-Type"].find("application/json") != -1:
+            regex_result = re.search(regex, query)
+            if regex_result != None:
+                self.__set_result({
+                    "detect_name" : "SSRF",
+                    "method" : request["method"],
+                    "url" : self.target_host + request["url"],
+                    "body" : query,
+                    "vuln_parameter" : "",
+                    "risk" : "medium",
+                    "file_name" : self.file_name,
+                    "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery"
+                })
+
+        else:
+            for q in query.split("&"):
+                data = q.split("=")
+
+                if len(data) != 2:
+                    return
+
+                regex_result = re.search(regex, data[1])
+                if regex_result != None:
+                    self.__set_result({
+                        "detect_name" : "SSRF",
+                        "method" : request["method"],
+                        "url" : self.target_host + request["url"],
+                        "body" : "",
+                        "vuln_parameter" : data[0],
+                        "risk" : "medium",
+                        "file_name" : self.file_name,
+                        "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery"
+                    })
+
+
+    def __detect_open_redirect(self, request: dict, response: dict):
+        regex = "^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$"
+        query = urlparse(request["url"]).query
+
+        if len(query) == 0:
+            return
+
+        for q in query.split("&"):
+            data = q.split("=")
+
+            if len(data) != 2:
+                return
+
+            regex_result = re.search(regex, data[1])
+            if regex_result != None:
+                self.__set_result({
+                    "detect_name" : "Open Redirect",
+                    "method" : request["method"],
+                    "url" : self.target_host + request["url"],
+                    "body" : "",
+                    "vuln_parameter" : data[0],
+                    "risk" : "medium",
+                    "file_name" : self.file_name,
+                    "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery"
+                })
 
 
     def __set_result(self, data: dict):

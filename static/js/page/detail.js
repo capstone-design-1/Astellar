@@ -21,12 +21,6 @@ window.onload = function(){
 
         console.log("[debug] ", data);
 
-        if(key_list.length == 0){
-            clearInterval(get_realtime_data);
-            alert("서버 에러가 발생했습니다. 재시작 해주세요.");
-            return;
-        }
-
         for(let key of key_list){
             switch(key){
                 case "packet_count":

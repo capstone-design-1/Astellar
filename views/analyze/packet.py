@@ -18,7 +18,9 @@ class Packet:
             }
 
             response = {
+                "http_protocol" : "HTTP/1.1",
                 "status_code" : 200,
+                "reason" : "OK",   // ("Not Found", "Forbidden")
                 "header" : {
                     "Set-Cookie" : "asdf=asdf",
                     "Server" : "apache"
@@ -94,7 +96,15 @@ class Packet:
 
         headers = response_header.split("\n")
         if headers[0].startswith("HTTP/") == True:
-            return_data["status_code"] = headers[0].split(" ")[1]
+            tmp = headers[0].split(" ")
+
+            if len(tmp) < 3:
+                raise
+
+            return_data["http_protocol"] = tmp[0]
+            return_data["status_code"] = tmp[1]
+            return_data["reason"] = " ".join(tmp[2:])
+            
         else:
             raise
 

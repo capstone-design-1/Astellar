@@ -12307,11 +12307,13 @@ a.close.disabled {
   flex-direction: column;
   width: 100%;
   pointer-events: auto;
-  background-color: #000000;
-  background-clip: padding-box;
+  background-color: #191c24;
+  /* background-clip: padding-box; */
   border: 1px solid #2c2e33;
   border-radius: 0.3rem;
-  outline: 0; }
+  outline: 0; 
+  word-wrap: break-word;
+}
 
 .modal-backdrop {
   position: fixed;
@@ -15735,7 +15737,7 @@ code {
   padding: 5px;
   color: #fc424a;
   font-weight: 300;
-  font-size: 0.875rem;
+  font-size: 16px;
   border-radius: 4px; }
 
 .page-header {

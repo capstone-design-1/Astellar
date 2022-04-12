@@ -1,15 +1,14 @@
 let prev_attack_vector = [];
+const socket = io();
+const refresh_btn = document.getElementsByClassName("subdomain-refresh-btn");
+const target_name = document.getElementsByName("target_name")[0].value;
+const monitor_path = document.getElementsByName("monitor_path")[0].value;
 
 window.onload = function(){
-    const refresh_btn = document.getElementsByClassName("subdomain-refresh-btn");
-    const target_name = document.getElementsByName("target_name")[0].value;
-    const monitor_path = document.getElementsByName("monitor_path")[0].value;
-
     if(refresh_btn.length != 0){
         refresh_btn[0].addEventListener("click", () => { searchSubdomain(target_name); });
     }
 
-    var socket = io();
     socket.on('connect', function() {
         socket.emit('message', {"target": target_name, "monitor_path" : monitor_path});
     });
@@ -34,6 +33,9 @@ window.onload = function(){
                 case "attack_vector":
                     setAttackVectorCount(data[key].length);
                     setAttackVector(data[key]);
+                    break;
+                case "modal":
+                    setModalDetail(data[key]);
                     break;
             }
         }
@@ -180,6 +182,7 @@ function setAttackVector(data){
     if(prev_attack_vector.length == data.length){
         return;
     }
+    const risk_info = `<div class="badge badge-outline-primary">Info</div>`;
     const risk_low = `<div class="badge badge-outline-success">Low</div>`;
     const risk_medium = `<div class="badge badge-outline-warning">Medium</div>`;
     const risk_high = `<div class="badge badge-outline-danger">High</div>`;
@@ -201,7 +204,10 @@ function setAttackVector(data){
         }
 
         let risk = ``;
-        if(analyze["risk"] == "low"){
+        if(analyze["risk"] == "info"){
+            risk = risk_info;
+        }
+        else if(analyze["risk"] == "low"){
             risk = risk_low;
         }
         else if(analyze["risk"] == "medium"){
@@ -213,6 +219,11 @@ function setAttackVector(data){
 
         let path = new URL(analyze["url"]);
         path = path.href.replace(path.origin, "");
+        
+        if(path.length > 35){
+            path = path.substring(0, 35) + "...";
+        }
+
 
         template += html.replace("{{detect_name}}", analyze["detect_name"])
                         .replace("{{method}}", analyze["method"])
@@ -231,8 +242,47 @@ function setAttackVector(data){
 
 function setModal(e){
     const data = JSON.parse(e.dataset.value);
-    const modal_title = document.getElementsByClassName("modal-title")[0];
-    const modal_body = document.getElementsByClassName("modal-body")[0];
 
-    modal_body.innerHTML = data["url"];
+    // modal_body.innerHTML = data["url"];
+
+    socket.emit("get_packet_detail", {
+        "target": target_name, 
+        "file_path" : data["file_path"],
+        "file_name" : data["file_name"]
+    });
+}
+
+// TODO
+// request 에 GET /url
+// response 에 HTTP/200 asdf
+function setModalDetail(data, mode="request"){
+    const modal_packet = document.getElementsByClassName("modal-packet")[0];
+    let packet = `<button type="button" class="btn btn-outline-info btn-fw modal-request-btn">Request</button>
+                            <button type="button" class="btn btn-outline-info btn-fw modal-response-btn">Response</button><Br><Br>`;
+
+    if(mode == "request"){
+        packet += `<code>${data[mode]["method"]}</code> ${data[mode]["url"]} ${data[mode]["http_protocol"] }<br>`
+    }
+    else if(mode == "response"){
+        packet += `${data[mode]["http_protocol"]} <code>${data[mode]["status_code"]}</code> ${data[mode]["reason"] }<br>`
+    }
+
+    for(let header_key in data[mode]["header"]){
+        packet += `<code>${header_key}</code>: ${escapeHTML(data[mode]["header"][header_key])}<br>`;
+    }
+    packet += `<br>${escapeHTML(data[mode]["body"])}`;
+
+    modal_packet.innerHTML = packet;
+
+    document.getElementsByClassName("modal-request-btn")[0].addEventListener("click", () => {
+        setModalDetail(data);
+    });
+    document.getElementsByClassName("modal-response-btn")[0].addEventListener("click", () => {
+        setModalDetail(data, "response");
+    });
+}
+
+
+function escapeHTML(data){
+    return data.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }

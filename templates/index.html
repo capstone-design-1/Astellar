@@ -24,6 +24,36 @@
     <link rel="stylesheet" href="/css/custom.css">
   </head>
   <body>
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalCenterTitle">💡Create New Target</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col">
+                저장 경로는<code>{{save_dir_path}}</code>입니다.<br>
+                <code>proxify</code>외부 프로그램으로 web packet을 수집합니다. <a href='https://github.com/projectdiscovery/proxify'>[링크]</a><br><br>
+                target 호스트를 작성해 주세요.<br><hr>
+                <div class="input-group">
+                  <input type="text" name="create-target-value" class="form-control" placeholder="blog.naver.com" aria-label="blog.naver.com" aria-describedby="basic-addon2">
+                  <div class="input-group-append">
+                    <button class="btn btn-sm btn-primary create-target" type="button">Create</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary create-project-close" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="container-scroller">
       <!-- partial:partials/_sidebar.html -->
       <nav class="sidebar sidebar-offcanvas" id="sidebar">
@@ -188,7 +218,7 @@
             </ul>
             <ul class="navbar-nav navbar-nav-right">
               <li class="nav-item dropdown d-none d-lg-block">
-                <a class="nav-link btn btn-success create-new-button" id="createbuttonDropdown" data-toggle="dropdown" aria-expanded="false" href="#">+ Create New Project</a>
+                <a class="nav-link btn btn-success create-new-button" data-toggle="modal" data-target="#exampleModalCenter">+ Create New Target</a>
                 <div class="dropdown-menu dropdown-menu-right navbar-dropdown preview-list" aria-labelledby="createbuttonDropdown">
                   <h6 class="p-3 mb-0">Projects</h6>
                   <div class="dropdown-divider"></div>

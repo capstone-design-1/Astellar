@@ -15434,7 +15434,9 @@ button:focus {
   outline-width: 0;
   outline-color: transparent;
   box-shadow: none;
-  outline-style: none; }
+  outline-style: none;
+  color: white;
+}
 
 textarea {
   resize: none;

@@ -41,13 +41,6 @@ window.onload = function(){
         }
     });
 
-    
-    const get_realtime_data = setInterval(()=> {
-        socket.emit("get_realtime_data", {"target": target_name});
-    }, 3000);
-
-    initSubdomain(target_name);
-
     function initSubdomain(target_name){
         try{
             fetch(`/detail/api/getSubdomain?target=${target_name}`)
@@ -89,6 +82,32 @@ window.onload = function(){
             console.log(error);
         }
     }
+
+
+    function initStart(target_name){
+        try{
+            fetch(`/api/start?target=${target_name}`)
+            .then((res) => res.json())
+            .then((data) => {
+                if(data["error"]){
+                    alert(data["message"]);
+                    // location.href='/';
+                }
+            })
+        }
+        catch{
+            alert("proxify 프로그램이 실행되지 않았습니다.");
+            // location.href='/';
+        }
+    }
+
+
+    const get_realtime_data = setInterval(()=> {
+        socket.emit("get_realtime_data", {"target": target_name});
+    }, 3000);
+
+    initSubdomain(target_name);
+    initStart(target_name);
 }
 
 function setSubdomain(data){

@@ -1,3 +1,4 @@
+# full name 으로 바꾸기
 import re
 
 compare = dict()

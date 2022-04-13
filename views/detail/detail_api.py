@@ -17,6 +17,9 @@ def Setsubdomain():
     result = []
     os.system('assetfinder '+target+ ' > result.txt')
     f = open("result.txt","r")
+
+    #TODO
+    #여기서 필요없는 도메인 지우기 (target 변수에 도메인 정보있음)
     while True:
         line = f.readline()
         if line == '':

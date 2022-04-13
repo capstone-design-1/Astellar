@@ -38,7 +38,10 @@ class AttackVector:
 
     def __detect_reflectXSS(self, request : dict, response: dict):
         #response 예외처리하기 -> html ?
-        soup = BeautifulSoup(response["body"], 'html.parser')
+        try:
+            soup = BeautifulSoup(response["body"], 'html.parser')
+        except:
+            return
         if soup.find("html") == None :
             return
 
@@ -58,7 +61,10 @@ class AttackVector:
         p = tmp[1].split("&")
         flag = set()
         for parameter in p:
-            name, value = parameter.split("=")
+            data = parameter.split("=")
+            if len(data) != 2:
+                continue
+            name, value = data
             for tag in input_tag :
                 if tag["name"] == name and tag["value"] == value:
                     flag.add(name)
@@ -79,7 +85,10 @@ class AttackVector:
             "body" : request["body"],
             "vuln_parameter" : flag,
             "risk" : "high",
-            "file_name" : self.file_name
+            "file_name" : self.file_name,
+            "reference" : "",
+            "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+            "file_path" : self.file_path
         })
 
         # high_risk = ["email", "file", "password", "submit", "text", "link", "url", "search"]
@@ -97,7 +106,6 @@ class AttackVector:
         from . import reKey
         flag = []
 
-        print(response["header"])
         strResponse = str(response["header"])
         for i in reKey.compKey:
             res = re.search(reKey.compare[i], strResponse)
@@ -114,7 +122,10 @@ class AttackVector:
             "body" : request["body"],
             "vuln_parameter" : flag, #keyValue
             "risk" : "info",
-            "file_name" : self.file_name
+            "file_name" : self.file_name,
+            "reference" : "",
+            "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+            "file_path" : self.file_path
         })
         
 

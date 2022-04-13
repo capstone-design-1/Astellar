@@ -34,4 +34,4 @@ def index():
 
 
 
-    return render_template("index.html", target_data=target_data)
+    return render_template("index.html", target_data=target_data, save_dir_path = current_app.config["SAVE_DIR_PATH"],)

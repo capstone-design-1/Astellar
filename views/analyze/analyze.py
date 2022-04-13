@@ -11,8 +11,8 @@ class Analyze:
         self.wappalyzer_obj = Wappalyzer(target_site)
         self.attack_vector_obj = AttackVector()
     
-    def start(self, packet_data, file_name):
+    def start(self, packet_data, file_name: str, target_folder: str):
         ## TODO
         ## 이미지, 바이너리 파일, 폰트 등등 필터링 해야함.
         self.wappalyzer_obj.start(packet_data.request, packet_data.response)
-        self.attack_vector_obj.start(packet_data.request, packet_data.response, file_name)
+        self.attack_vector_obj.start(packet_data.request, packet_data.response, file_name, target_folder)

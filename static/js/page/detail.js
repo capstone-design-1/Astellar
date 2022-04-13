@@ -1,13 +1,14 @@
-window.onload = function(){
-    const refresh_btn = document.getElementsByClassName("subdomain-refresh-btn");
-    const target_name = document.getElementsByName("target_name")[0].value;
-    const monitor_path = document.getElementsByName("monitor_path")[0].value;
+let prev_attack_vector = [];
+const socket = io();
+const refresh_btn = document.getElementsByClassName("subdomain-refresh-btn");
+const target_name = document.getElementsByName("target_name")[0].value;
+const monitor_path = document.getElementsByName("monitor_path")[0].value;
 
+window.onload = function(){
     if(refresh_btn.length != 0){
         refresh_btn[0].addEventListener("click", () => { searchSubdomain(target_name); });
     }
 
-    var socket = io();
     socket.on('connect', function() {
         socket.emit('message', {"target": target_name, "monitor_path" : monitor_path});
     });
@@ -33,16 +34,12 @@ window.onload = function(){
                     setAttackVectorCount(data[key].length);
                     setAttackVector(data[key]);
                     break;
+                case "modal":
+                    setModalDetail(data[key]);
+                    break;
             }
         }
     });
-
-    
-    const get_realtime_data = setInterval(()=> {
-        socket.emit("get_realtime_data", {"target": target_name});
-    }, 3000);
-
-    initSubdomain(target_name);
 
     function initSubdomain(target_name){
         try{
@@ -85,6 +82,32 @@ window.onload = function(){
             console.log(error);
         }
     }
+
+
+    function initStart(target_name){
+        try{
+            fetch(`/api/start?target=${target_name}`)
+            .then((res) => res.json())
+            .then((data) => {
+                if(data["error"]){
+                    alert(data["message"]);
+                    // location.href='/';
+                }
+            })
+        }
+        catch{
+            alert("proxify 프로그램이 실행되지 않았습니다.");
+            // location.href='/';
+        }
+    }
+
+
+    const get_realtime_data = setInterval(()=> {
+        socket.emit("get_realtime_data", {"target": target_name});
+    }, 3000);
+
+    initSubdomain(target_name);
+    initStart(target_name);
 }
 
 function setSubdomain(data){
@@ -171,22 +194,39 @@ function setAttackVectorCount(count){
 
 function setAttackVector(data){
     const selector = document.getElementsByClassName("attack-vector-result")[0].querySelector("tbody");
+
+    if(prev_attack_vector.length == 0){
+        selector.innerHTML = '';
+    }
+    if(prev_attack_vector.length == data.length){
+        return;
+    }
+    const risk_info = `<div class="badge badge-outline-primary">Info</div>`;
     const risk_low = `<div class="badge badge-outline-success">Low</div>`;
     const risk_medium = `<div class="badge badge-outline-warning">Medium</div>`;
     const risk_high = `<div class="badge badge-outline-danger">High</div>`;
-    const html = `<tr>
+    const html = `<tr data-toggle="modal" data-target="#exampleModalCenter" onclick='setModal(this);' data-value='{{data-value}}'>
                     <td width="200px"> {{detect_name}} </td>
                     <td width="200px"> <div class="badge badge-success">{{method}}</div> </td>
-                    <td width="200px"> <a href="{{url}}" target="_blank">{{url}}</a> </td>
+                    <td width="200px"> <a href="{{full_url}}" target="_blank">{{url}}</a> </td>
                     <td width="200px"> {{vuln_parameter}} </td>
                     <td width="200px"> {{risk}} </td>
+                    <td width="200px"> {{time}} </td>
                 </tr>`;
     
     let template = ``;
-
+    let count = 0;
     for(const analyze of data){
+        if(prev_attack_vector.length > count){
+            count++;
+            continue;
+        }
+
         let risk = ``;
-        if(analyze["risk"] == "low"){
+        if(analyze["risk"] == "info"){
+            risk = risk_info;
+        }
+        else if(analyze["risk"] == "low"){
             risk = risk_low;
         }
         else if(analyze["risk"] == "medium"){
@@ -196,13 +236,72 @@ function setAttackVector(data){
             risk = risk_high;
         }
 
+        let path = new URL(analyze["url"]);
+        path = path.href.replace(path.origin, "");
+        
+        if(path.length > 35){
+            path = path.substring(0, 35) + "...";
+        }
+
+
         template += html.replace("{{detect_name}}", analyze["detect_name"])
                         .replace("{{method}}", analyze["method"])
-                        .replace(/{{url}}/g, analyze["url"])
+                        .replace("{{full_url}}", analyze["url"])
+                        .replace("{{url}}",path)
                         .replace("{{vuln_parameter}}", analyze["vuln_parameter"])
-                        .replace("{{risk}}", risk);
+                        .replace("{{risk}}", risk)
+                        .replace("{{time}}", analyze["detect_time"])
+                        .replace("{{data-value}}", JSON.stringify(analyze));
     }
 
-    selector.innerHTML = template;
-    
+    selector.innerHTML += template;
+    prev_attack_vector = data;
+}
+
+
+function setModal(e){
+    const data = JSON.parse(e.dataset.value);
+
+    // modal_body.innerHTML = data["url"];
+
+    socket.emit("get_packet_detail", {
+        "target": target_name, 
+        "file_path" : data["file_path"],
+        "file_name" : data["file_name"]
+    });
+}
+
+// TODO
+// request 에 GET /url
+// response 에 HTTP/200 asdf
+function setModalDetail(data, mode="request"){
+    const modal_packet = document.getElementsByClassName("modal-packet")[0];
+    let packet = `<button type="button" class="btn btn-outline-info btn-fw modal-request-btn">Request</button>
+                            <button type="button" class="btn btn-outline-info btn-fw modal-response-btn">Response</button><Br><Br>`;
+
+    if(mode == "request"){
+        packet += `<code>${data[mode]["method"]}</code> ${data[mode]["url"]} ${data[mode]["http_protocol"] }<br>`
+    }
+    else if(mode == "response"){
+        packet += `${data[mode]["http_protocol"]} <code>${data[mode]["status_code"]}</code> ${data[mode]["reason"] }<br>`
+    }
+
+    for(let header_key in data[mode]["header"]){
+        packet += `<code>${header_key}</code>: ${escapeHTML(data[mode]["header"][header_key])}<br>`;
+    }
+    packet += `<br>${escapeHTML(data[mode]["body"])}`;
+
+    modal_packet.innerHTML = packet;
+
+    document.getElementsByClassName("modal-request-btn")[0].addEventListener("click", () => {
+        setModalDetail(data);
+    });
+    document.getElementsByClassName("modal-response-btn")[0].addEventListener("click", () => {
+        setModalDetail(data, "response");
+    });
+}
+
+
+function escapeHTML(data){
+    return data.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }

@@ -1,7 +1,8 @@
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 import re
-
+import datetime
+import os
 
 class AttackVector:
     def __init__(self):
@@ -10,8 +11,9 @@ class AttackVector:
         self.target_host = ''
         
 
-    def start(self, request: dict, response: dict, file_name: str):
+    def start(self, request: dict, response: dict, file_name: str, target_folder: str):
         self.file_name = file_name
+        self.file_path = os.path.join(target_folder, file_name)
 
         self.__set_target()
         self.__detect_SQLI(request, response)
@@ -106,16 +108,14 @@ class AttackVector:
             return
 
         self.__set_result({
-        "detect_name" : "Key Leak",
-        "method" : request["method"],
-        "url" : self.target_host + request["url"],
-        "body" : request["body"],
-        "vuln_parameter" : flag, #keyValue
-        "risk" : "low",
-        "file_name" : self.file_name
-    })
-        
-       
+            "detect_name" : "Key Leak",
+            "method" : request["method"],
+            "url" : self.target_host + request["url"],
+            "body" : request["body"],
+            "vuln_parameter" : flag, #keyValue
+            "risk" : "info",
+            "file_name" : self.file_name
+        })
         
 
     def __detect_SQLI(self, request: dict, response: dict):
@@ -151,7 +151,10 @@ class AttackVector:
                     "body" : request["body"],
                     "vuln_parameter" : data[0],
                     "risk" : "high",
-                    "file_name" : self.file_name
+                    "file_name" : self.file_name,
+                    "reference" : "",
+                    "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                    "file_path" : self.file_path
                 })
 
         else:
@@ -167,7 +170,9 @@ class AttackVector:
                         "vuln_parameter" : data[0],
                         "risk" : "high",
                         "file_name" : self.file_name,
-                        "reference" : ""
+                        "reference" : "",
+                        "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                    "file_path" : self.file_path
                     })
     
 
@@ -180,15 +185,17 @@ class AttackVector:
                     "url" : self.target_host + request["url"],
                     "body" : request["body"],
                     "vuln_parameter" : key,
-                    "risk" : "low",
+                    "risk" : "info",
                     "file_name" : self.file_name,
-                    "reference" : "https://guleum-zone.tistory.com/169"
+                    "reference" : "https://guleum-zone.tistory.com/169",
+                    "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                    "file_path" : self.file_path
                 })
                 break
     
 
     def __detect_SSRF(self, request: dict, response: dict):
-        regex = "^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$"
+        regex = "^(?:http(s)?:\/\/)[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$"
 
         if request["method"] == "GET":
             query = urlparse(request["url"]).query
@@ -213,7 +220,9 @@ class AttackVector:
                     "vuln_parameter" : "",
                     "risk" : "medium",
                     "file_name" : self.file_name,
-                    "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery"
+                    "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery",
+                    "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                    "file_path" : self.file_path
                 })
 
         else:
@@ -233,12 +242,14 @@ class AttackVector:
                         "vuln_parameter" : data[0],
                         "risk" : "medium",
                         "file_name" : self.file_name,
-                        "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery"
+                        "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery",
+                        "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                    "file_path" : self.file_path
                     })
 
 
     def __detect_open_redirect(self, request: dict, response: dict):
-        regex = "^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$"
+        regex = "^(?:http(s)?:\/\/)[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$"
         query = urlparse(request["url"]).query
 
         if len(query) == 0:
@@ -260,18 +271,20 @@ class AttackVector:
                     "vuln_parameter" : data[0],
                     "risk" : "medium",
                     "file_name" : self.file_name,
-                    "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery"
+                    "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery",
+                    "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                    "file_path" : self.file_path
                 })
 
 
     def __set_result(self, data: dict):
-        # detect_name = data["detect_name"]
-        # cur_path = data["url"].split("?")[0]
+        detect_name = data["detect_name"]
+        cur_path = data["url"].split("?")[0]
 
-        # for result in self.attack_vector_result:
+        for result in self.attack_vector_result:
 
-        #     result_path = result["url"].split("?")[0]
-        #     if detect_name == result["detect_name"] and cur_path == result_path:
-        #         return
+            result_path = result["url"].split("?")[0]
+            if detect_name == result["detect_name"] and cur_path == result_path:
+                return
         
         self.attack_vector_result.append(data)

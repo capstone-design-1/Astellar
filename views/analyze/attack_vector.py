@@ -18,10 +18,10 @@ class AttackVector:
         self.__set_target()
         self.__detect_SQLI(request, response)
         self.__detect_CORS(request, response)
-        # self.__detect__reflectXSS(request, response)
+        self.__detect_reflectXSS(request, response)
         self.__detect_SSRF(request, response)
-        # self.__detect_open_redirect(request, response)
-
+        self.__detect_open_redirect(request, response)
+        self.__detect_KeyLeak(request, response)
     
 
     def __set_target(self):
@@ -36,37 +36,86 @@ class AttackVector:
             self.target_host = host_info
 
 
-    def __detect__reflectXSS(self, request : dict, response: dict):
-        #response 예외처리하기
-        soup = BeautifulSoup(response["body"])
+    def __detect_reflectXSS(self, request : dict, response: dict):
+        #response 예외처리하기 -> html ?
+        soup = BeautifulSoup(response["body"], 'html.parser')
+        if soup.find("html") == None :
+            return
+
         input_tag = soup.find_all("input")
         textarea_tag = soup.find_all("textarea")
 
         if(input_tag == None and textarea_tag == None):
             return
+        
+        # 정규표현식으로 ? 뒤에 내용 추출 &로 split -> 안됨 ㅠㅠㅠㅠ물음표안됨왜안됨
+        
+        tmp = request["url"].split("?")
+        # len(tmp) <= 1 : 파라미터값 없다는 뜻
+        if len(tmp) <= 1:
+            return
 
-        high_risk = ["email", "file", "password", "submit", "text", "link", "url", "search"]
-        return_risk = "low"
-        for tag in input_tag:
-            if tag["type"] in high_risk :
-                return_risk = "high"
-                break
+        p = tmp[1].split("&")
+        flag = set()
+        for parameter in p:
+            name, value = parameter.split("=")
+            for tag in input_tag :
+                if tag["name"] == name and tag["value"] == value:
+                    flag.add(name)
+
+            for tag in textarea_tag:
+                if tag["name"] == name and tag.text == value:
+                    flag.add(name)
         
-        if textarea_tag :
-            return_risk = "high"
-        
+        if not flag:
+            return
+
+        flag = list(flag)
+
         self.__set_result({
-                    "detect_name" : "Reflect XSS",
-                    "method" : request["method"],
-                    "url" : self.target_host + request["url"],
-                    "body" : request["body"],
-                    "vuln_parameter" : "",
-                    "risk" : return_risk,
-                    "file_name" : self.file_name,
-                    "reference" : "",
-                    "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
-                    "file_path" : self.file_path
-                })
+            "detect_name" : "Reflect XSS",
+            "method" : request["method"],
+            "url" : self.target_host + request["url"],
+            "body" : request["body"],
+            "vuln_parameter" : flag,
+            "risk" : "high",
+            "file_name" : self.file_name
+        })
+
+        # high_risk = ["email", "file", "password", "submit", "text", "link", "url", "search"]
+
+        # return_risk = "low"
+        # for tag in input_tag:
+        #     if tag["type"] in high_risk :
+        #         return_risk = "high"
+        #         break
+        
+        # if textarea_tag :
+        #     return_risk = "high"
+
+    def __detect_KeyLeak (self, request : dict, response: dict):
+        from . import reKey
+        flag = []
+
+        print(response["header"])
+        strResponse = str(response["header"])
+        for i in reKey.compKey:
+            res = re.search(reKey.compare[i], strResponse)
+            if res:
+                flag.append(i)
+
+        if not flag:
+            return
+
+        self.__set_result({
+            "detect_name" : "Key Leak",
+            "method" : request["method"],
+            "url" : self.target_host + request["url"],
+            "body" : request["body"],
+            "vuln_parameter" : flag, #keyValue
+            "risk" : "info",
+            "file_name" : self.file_name
+        })
         
 
     def __detect_SQLI(self, request: dict, response: dict):

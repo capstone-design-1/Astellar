@@ -101,10 +101,7 @@ window.onload = function(){
         }
     }
 
-
-    const get_realtime_data = setInterval(()=> {
-        socket.emit("get_realtime_data", {"target": target_name});
-    }, 3000);
+    socket.emit("get_realtime_data", {"target": target_name});
 
     initSubdomain(target_name);
     initStart(target_name);

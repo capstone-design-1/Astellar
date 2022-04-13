@@ -130,7 +130,7 @@ window.onload = function() {
                 }
 
                 alert(data["message"]);
-                document.getElementsByClassName("create-project-close")[0].click();
+                location.href = '';
             })
         }
         catch{

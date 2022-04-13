@@ -7,13 +7,13 @@
     <title>Astellar | detail</title>
     <!-- plugins:css -->
     <link rel="stylesheet" href="/vendors/mdi/css/materialdesignicons.min.css">
-    <link rel="stylesheet" href="/vendors/css/vendor.bundle.base.css">
+    <!-- <link rel="stylesheet" href="/vendors/css/vendor.bundle.base.css"> -->
     <!-- endinject -->
     <!-- Plugin css for this page -->
-    <link rel="stylesheet" href="/vendors/jvectormap/jquery-jvectormap.css">
-    <link rel="stylesheet" href="/vendors/flag-icon-css/css/flag-icon.min.css">
+    <!-- <link rel="stylesheet" href="/vendors/jvectormap/jquery-jvectormap.css">
+    <link rel="stylesheet" href="/vendors/flag-icon-css/css/flag-icon.min.css"> -->
     <link rel="stylesheet" href="/vendors/owl-carousel-2/owl.carousel.min.css">
-    <link rel="stylesheet" href="/vendors/owl-carousel-2/owl.theme.default.min.css">
+    <!-- <link rel="stylesheet" href="/vendors/owl-carousel-2/owl.theme.default.min.css"> -->
     <!-- End plugin css for this page -->
     <!-- inject:css -->
     <!-- endinject -->
@@ -25,6 +25,30 @@
 
   </head>
   <body>
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalCenterTitle">💡Attack Vector Detail</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-6 modal-packet">
+              </div>
+              <div class="col-6 modal-packet2">
+                
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <input type="hidden" name="target_name" value="{{return_data['target_name']}}">
     <input type="hidden" name="monitor_path" value="{{return_data['monitor_path']}}">
     <div class="container-scroller">
@@ -191,7 +215,7 @@
             </ul>
             <ul class="navbar-nav navbar-nav-right">
               <li class="nav-item dropdown d-none d-lg-block">
-                <a class="nav-link btn btn-success create-new-button" id="createbuttonDropdown" data-toggle="dropdown" aria-expanded="false" href="#">+ Create New Project</a>
+                <!-- <a class="nav-link btn btn-success create-new-button" id="createbuttonDropdown" data-toggle="dropdown" aria-expanded="false" href="#">+ Create New Project</a> -->
                 <div class="dropdown-menu dropdown-menu-right navbar-dropdown preview-list" aria-labelledby="createbuttonDropdown">
                   <h6 class="p-3 mb-0">Projects</h6>
                   <div class="dropdown-divider"></div>
@@ -461,7 +485,7 @@
               <div class="col-md-8 grid-margin stretch-card">
                 <div class="card">
                   <div class="card-body">
-                    <h3 class="card-title">Attack Vector</h3>
+                    <h3 class="card-title">🛡️ Attack Vector</h3>
                     <div class="table-responsive">
                       <table class="table table-hover attack-vector-result">
                         <thead>
@@ -471,6 +495,7 @@
                             <th> URL </th>
                             <th> Vuln Parameter </th>
                             <th> Risk </th>
+                            <th> Time </th>
                           </tr>
                         </thead>
                         <tbody>
@@ -527,7 +552,7 @@
                 <div class="card">
                   <div class="card-body">
                     <div class="d-flex flex-row justify-content-between">
-                      <h3 class="card-title mb-1">Sub domains</h3>
+                      <h3 class="card-title mb-1">🗺️ Sub domains</h3>
                       <p class="text-muted mb-1 latest-update"></p>
                     </div>
                     <div class="d-flex flex-row justify-content-between">

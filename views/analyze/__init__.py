@@ -37,7 +37,7 @@ def fileMonitoring(SAVE_DIR_PATH, target_site, share_memory):
                     continue
 
                 packet = Packet(packet_data, regex_result)
-                analyze_obj.start(packet, file_name)
+                analyze_obj.start(packet, file_name, target_folder)
 
         share_memory[target_site] = {
             "wappalyzer" : analyze_obj.wappalyzer_obj.wappalyer_result,

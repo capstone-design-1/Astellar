@@ -1,7 +1,8 @@
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 import re
-
+import datetime
+import os
 
 class AttackVector:
     def __init__(self):
@@ -10,15 +11,16 @@ class AttackVector:
         self.target_host = ''
         
 
-    def start(self, request: dict, response: dict, file_name: str):
+    def start(self, request: dict, response: dict, file_name: str, target_folder: str):
         self.file_name = file_name
+        self.file_path = os.path.join(target_folder, file_name)
 
         self.__set_target()
         self.__detect_SQLI(request, response)
         self.__detect_CORS(request, response)
-        self.__detect__reflectXSS(request, response)
+        # self.__detect__reflectXSS(request, response)
         self.__detect_SSRF(request, response)
-        self.__detect_open_redirect(request, response)
+        # self.__detect_open_redirect(request, response)
 
     
 
@@ -60,7 +62,10 @@ class AttackVector:
                     "body" : request["body"],
                     "vuln_parameter" : "",
                     "risk" : return_risk,
-                    "file_name" : self.file_name
+                    "file_name" : self.file_name,
+                    "reference" : "",
+                    "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                    "file_path" : self.file_path
                 })
         
 
@@ -97,7 +102,10 @@ class AttackVector:
                     "body" : request["body"],
                     "vuln_parameter" : data[0],
                     "risk" : "high",
-                    "file_name" : self.file_name
+                    "file_name" : self.file_name,
+                    "reference" : "",
+                    "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                    "file_path" : self.file_path
                 })
 
         else:
@@ -113,7 +121,9 @@ class AttackVector:
                         "vuln_parameter" : data[0],
                         "risk" : "high",
                         "file_name" : self.file_name,
-                        "reference" : ""
+                        "reference" : "",
+                        "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                    "file_path" : self.file_path
                     })
     
 
@@ -126,15 +136,17 @@ class AttackVector:
                     "url" : self.target_host + request["url"],
                     "body" : request["body"],
                     "vuln_parameter" : key,
-                    "risk" : "low",
+                    "risk" : "info",
                     "file_name" : self.file_name,
-                    "reference" : "https://guleum-zone.tistory.com/169"
+                    "reference" : "https://guleum-zone.tistory.com/169",
+                    "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                    "file_path" : self.file_path
                 })
                 break
     
 
     def __detect_SSRF(self, request: dict, response: dict):
-        regex = "^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$"
+        regex = "^(?:http(s)?:\/\/)[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$"
 
         if request["method"] == "GET":
             query = urlparse(request["url"]).query
@@ -159,7 +171,9 @@ class AttackVector:
                     "vuln_parameter" : "",
                     "risk" : "medium",
                     "file_name" : self.file_name,
-                    "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery"
+                    "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery",
+                    "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                    "file_path" : self.file_path
                 })
 
         else:
@@ -179,12 +193,14 @@ class AttackVector:
                         "vuln_parameter" : data[0],
                         "risk" : "medium",
                         "file_name" : self.file_name,
-                        "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery"
+                        "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery",
+                        "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                    "file_path" : self.file_path
                     })
 
 
     def __detect_open_redirect(self, request: dict, response: dict):
-        regex = "^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$"
+        regex = "^(?:http(s)?:\/\/)[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$"
         query = urlparse(request["url"]).query
 
         if len(query) == 0:
@@ -206,7 +222,9 @@ class AttackVector:
                     "vuln_parameter" : data[0],
                     "risk" : "medium",
                     "file_name" : self.file_name,
-                    "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery"
+                    "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery",
+                    "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                    "file_path" : self.file_path
                 })
 
 

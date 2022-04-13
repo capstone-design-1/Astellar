@@ -3,3 +3,4 @@ requests
 flask-socketio
 favicon
 shodan
+psutil

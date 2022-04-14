@@ -124,7 +124,7 @@ def getPacketDetail(data):
             if regex_result == None:
                 return
 
-            packet = Packet(packet_data, regex_result)
+            packet = Packet(packet_data, regex_result, file_name)
 
 
         socketio.emit("receive", {

@@ -15,7 +15,7 @@ def Setsubdomain():
 
     data = []
     result = []
-    os.system('assetfinder '+target+ ' > result.txt')
+    os.system('./assets/assetfinder '+target+ ' > result.txt')
     f = open("result.txt","r")
 
     #TODO

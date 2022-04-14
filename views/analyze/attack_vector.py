@@ -339,7 +339,37 @@ class AttackVector:
 
 
     def __detect_IDOR(self, request, response):
-        pass
+        # TODO
+        # 이미 분석을 하기 전에 packet의 content-type을 검증하기 때문에 필요 없을 것이라고 생각
+        # filter_content_type = ["css", "js", "woff"]
+        # if "Content-Type" in response["header"].keys():
+
+        #     for content_type in filter_content_type:
+        #         if content_type in response["header"]["Content-Type"].lower():
+        #             return
+        
+        # else:
+        #     for extension in filter_content_type:
+        #         url_extension = request["url"].split("?")[0].split(".")[::-1][0].lower()
+
+        #         if extension == url_extension:
+        #             return
+        
+        url_parse = urlparse(request["url"])
+
+        ##  파라미터가 있는 경우
+        if len(url_parse.query) != 0:
+            pass
+        
+        else:
+            regex = "\/([\/a-zA-Z._-])+\/[0-9]+"
+            regex_result = re.search(regex, url_parse.path)
+
+            if regex_result == None:
+                return
+            
+            
+
 
 
     def __set_result(self, data: dict):

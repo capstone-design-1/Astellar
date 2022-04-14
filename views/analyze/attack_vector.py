@@ -22,6 +22,7 @@ class AttackVector:
         self.__detect_SSRF(request, response)
         self.__detect_open_redirect(request, response)
         self.__detect_KeyLeak(request, response)
+        self.__detect_S3_bucket(request, response)
     
 
     def __set_target(self):
@@ -261,8 +262,51 @@ class AttackVector:
                         "file_name" : self.file_name,
                         "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery",
                         "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
-                    "file_path" : self.file_path
+                        "file_path" : self.file_path
                     })
+
+
+    def __detect_S3_bucket(self, request: dict, response: dict):
+        patterns =  [
+            "[a-z0-9A-Z.-]+.s3.amazonaws.com",                          #   http://grnhse-marketing-site-assets.s3.amazonaws.com/
+            "[a-z0-9A-Z.-]+.s3-[a-z0-9A-Z-].amazonaws.com",
+            "[a-z0-9A-Z.-]+.s3-website[.-](us|af|ap|ca|eu|me|sa)",
+            "s3.amazonaws.com\/[a-z0-9A-Z._-]+",
+            "s3-[a-z0-9A-Z-]+.amazonaws.com\/[a-z0-9A-Z._-]+",
+            "s3.(us|af|ap|ca|eu|me|sa)-(east|west|south|southeast|northeast|central|north)-(1|2|3).amazonaws.com\/[a-z0-9A-Z._-]+"    #   https://s3.ap-northeast-2.amazonaws.com/code.coursemos.co.kr/csmsmedia/js/addExtBtn.js
+        ]
+
+        # TODO
+        # 현재 body에 여러개의 s3 bucket이 있을 경우, 첫번째 것만 탐지하게 됨.
+        for pattern in patterns:
+            result = dict()
+            req_body_result = re.search(pattern, request["body"])
+            res_body_result = re.search(pattern, response["body"])
+
+            if req_body_result != None:
+                result["request"] = request["body"][req_body_result.span()[0] : req_body_result.span()[1]]
+
+            if res_body_result != None:
+                result["response"] = response["body"][res_body_result.span()[0] : res_body_result.span()[1]]
+            
+            if len(result) != 0:
+                if "request" in result.keys():
+                    body = request["body"]
+                else:
+                    body = response["body"]
+                
+                self.__set_result({
+                    "detect_name" : "S3 Bucket",
+                    "method" : request["method"],
+                    "url" : self.target_host + request["url"],
+                    "body" : body,
+                    "vuln_parameter" : result[list(result.keys())[0]],
+                    "risk" : "info",
+                    "file_name" : self.file_name,
+                    "reference" : "",
+                    "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                    "file_path" : self.file_path
+                })
 
 
     def __detect_open_redirect(self, request: dict, response: dict):

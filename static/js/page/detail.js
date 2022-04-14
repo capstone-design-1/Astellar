@@ -243,12 +243,12 @@ function setAttackVector(data){
 
         template += html.replace("{{detect_name}}", analyze["detect_name"])
                         .replace("{{method}}", analyze["method"])
-                        .replace("{{full_url}}", analyze["url"])
-                        .replace("{{url}}",path)
+                        .replace("{{full_url}}", escapeHTML(analyze["url"]))
+                        .replace("{{url}}", escapeHTML(path))
                         .replace("{{vuln_parameter}}", analyze["vuln_parameter"])
                         .replace("{{risk}}", risk)
                         .replace("{{time}}", analyze["detect_time"])
-                        .replace("{{data-value}}", JSON.stringify(analyze));
+                        .replace("{{data-value}}", escapeHTML(JSON.stringify(analyze)));
     }
 
     selector.innerHTML += template;
@@ -300,5 +300,8 @@ function setModalDetail(data, mode="request"){
 
 
 function escapeHTML(data){
-    return data.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return data.replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/'/g, "&apos;")
+                .replace(/"/g, "&quot;");
 }

@@ -66,12 +66,18 @@ class AttackVector:
                 continue
             name, value = data
             for tag in input_tag :
-                if tag["name"] == name and tag["value"] == value:
-                    flag.add(name)
+                try:
+                    if tag["name"] == name and tag["value"] == value:
+                        flag.add(name)
+                except:
+                    continue
 
             for tag in textarea_tag:
-                if tag["name"] == name and tag.text == value:
-                    flag.add(name)
+                try:
+                    if tag["name"] == name and tag.text == value:
+                        flag.add(name)
+                except:
+                    continue
         
         if not flag:
             return

@@ -24,8 +24,10 @@ def fileMonitoring(SAVE_DIR_PATH, target_site, share_memory):
         new_file_name = cur_file_list - prev_file_list
         prev_file_list = cur_file_list
         prev_file_count = len(cur_file_list)
-
+        
+        # tmp_count = 0
         for file_name in new_file_name:
+            # tmp_count += 1
             # print("Log: " + os.path.join(target_folder, file_name))
 
             with open(os.path.join(target_folder, file_name), encoding="utf8", errors='ignore') as data:
@@ -39,6 +41,13 @@ def fileMonitoring(SAVE_DIR_PATH, target_site, share_memory):
                 packet = Packet(packet_data, regex_result, file_name)
                 if checkContentType(packet):
                     analyze_obj.start(packet, file_name, target_folder)
+
+            # if tmp_count % 100 == 0:
+            #     share_memory[target_site] = {
+            #         "wappalyzer" : analyze_obj.wappalyzer_obj.wappalyer_result,
+            #         "attack_vector" : analyze_obj.attack_vector_obj.attack_vector_result,
+            #         "packet_count" : prev_file_count
+            #     }
 
         share_memory[target_site] = {
             "wappalyzer" : analyze_obj.wappalyzer_obj.wappalyer_result,

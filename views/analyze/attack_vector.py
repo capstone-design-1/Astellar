@@ -276,6 +276,14 @@ class AttackVector:
 
 
     def __detect_S3_bucket(self):
+        
+        ##  response body 값이 엄청 클 경우(js, css), 해당 파일을 정규 표현식으로 검사하는 과정에서 상당한 시간이 소요됨.
+        ##  따라서, js css 파일은 검사하지 않도록 설정
+        url_extension = urlparse(self.packet.request["url"]).path.split(".")[::-1][0]
+
+        if url_extension == "js" or url_extension == "css":
+            return
+
         patterns =  [
             "[a-z0-9A-Z.-]+.s3.amazonaws.com",                          #   http://grnhse-marketing-site-assets.s3.amazonaws.com/
             "[a-z0-9A-Z.-]+.s3-[a-z0-9A-Z-].amazonaws.com",
@@ -476,7 +484,7 @@ class AttackVector:
 
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 parse = urlparse(self.target_host)
-
+                print("[Debug] IDOR sending: " + self.target_host)
                 if parse.scheme == "https":
                     context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
                     context.verify_mode = ssl.CERT_NONE

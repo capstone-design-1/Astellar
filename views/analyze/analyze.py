@@ -1,5 +1,3 @@
-
-
 from views.analyze.wappalyzer import Wappalyzer
 from views.analyze.attack_vector import AttackVector
 
@@ -15,4 +13,4 @@ class Analyze:
         ## TODO
         ## 이미지, 바이너리 파일, 폰트 등등 필터링 해야함.
         self.wappalyzer_obj.start(packet_data.request, packet_data.response)
-        self.attack_vector_obj.start(packet_data.request, packet_data.response, file_name, target_folder)
+        self.attack_vector_obj.start(packet_data, file_name, target_folder)

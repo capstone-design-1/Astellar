@@ -36,7 +36,7 @@ def fileMonitoring(SAVE_DIR_PATH, target_site, share_memory):
                 if regex_result == None:
                     continue
 
-                packet = Packet(packet_data, regex_result)
+                packet = Packet(packet_data, regex_result, file_name)
                 if checkContentType(packet):
                     analyze_obj.start(packet, file_name, target_folder)
 

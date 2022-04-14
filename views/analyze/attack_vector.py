@@ -338,6 +338,10 @@ class AttackVector:
                 })
 
 
+    def __detect_IDOR(self, request, response):
+        pass
+
+
     def __set_result(self, data: dict):
         detect_name = data["detect_name"]
         cur_path = data["url"].split("?")[0]

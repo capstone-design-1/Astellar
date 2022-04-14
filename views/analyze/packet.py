@@ -2,7 +2,7 @@ import json
 from urllib.parse import urlparse
 
 class Packet:
-    def __init__(self, packet_data: str, regex_result):
+    def __init__(self, packet_data: str, regex_result, file_name: str):
         """
             request = {
                 "method" : "POST",
@@ -30,9 +30,15 @@ class Packet:
             } 
         
         """
+        self.file_name = file_name
+        self.target_host = self.__set_target_host()
         self.request = self.__set_request_packet(packet_data, regex_result)
         self.response = self.__set_response_packet(packet_data, regex_result)
-        
+    
+
+    def __set_target_host(self):
+        return self.file_name.split("-")[0]
+
 
     def __set_request_packet(self, packet_data: str, regex_result) -> dict:
         return_data = dict()
@@ -45,6 +51,7 @@ class Packet:
         else:
             return_data["body"] = ""
         return_data["header"] = dict()
+        return_data["header"]["Host"] = self.target_host
         method_list = ("GET", "POST", "OPTIONS", "DELETE", "PUT", "CONNECT", "HEAD")
 
         for header in request_header.split("\n"):
@@ -125,8 +132,18 @@ class Packet:
         return return_data
     
 
-    def requestToString(self) -> str:
-        return json.dumps(self.request)
+    def getRequestToRawData(self) -> str:
+        return_raw = f"{self.request['method']} {self.request['url']} {self.request['http_protocol']}\r\n"
+
+        for header in self.request["header"]:
+            return_raw += f"{header}: {self.request['header'][header]}\r\n"
+        
+        if self.request["method"] == "POST":
+            return_raw += f"\r\n{self.request['body']}"
+        else:
+            return_raw += f"\r\n"
+        
+        return return_raw
     
-    def responseToString(self) -> str:
+    def responseToRawData(self) -> str:
         return json.dumps(self.response)

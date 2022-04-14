@@ -99,7 +99,7 @@ def getResultRealTime(data):
                 "data" : share_memory[data["target"]]
             }, room = request.sid)
             
-            time.sleep(3)
+            time.sleep(2)
 
 @socketio.on("get_packet_detail")
 def getPacketDetail(data):
@@ -124,7 +124,7 @@ def getPacketDetail(data):
             if regex_result == None:
                 return
 
-            packet = Packet(packet_data, regex_result)
+            packet = Packet(packet_data, regex_result, file_name)
 
 
         socketio.emit("receive", {

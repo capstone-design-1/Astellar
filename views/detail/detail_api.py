@@ -13,7 +13,7 @@ def Setsubdomain():
     if target == None:
         abort(400, description = "Parameter 'target' must be needed.")
 
-    data = []
+    data = set()
     result = []
     os.system('assetfinder '+target+ ' > result.txt')
     f = open("result.txt","r")
@@ -24,7 +24,9 @@ def Setsubdomain():
         line = f.readline()
         if line == '':
             break
-        data.append(line.strip())
+        if target not in line:
+            continue
+        data.add(line.strip())
     
     for i in data:
         url = i

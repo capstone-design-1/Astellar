@@ -170,7 +170,9 @@ class AttackVector:
 
         if "Content-Type" in self.packet.response["header"].keys() and self.packet.response["header"]["Content-Type"].find("application/json") != -1:
             data = params.lower()
-            if "asc" in data or "desc" in data or "order" in data:
+            ## TODO
+            ## 탐지할 문자열을 list화 해야함.
+            if "asc" in data or "desc" in data or "order" in data or "table" in data:
                 self.__set_result({
                     "detect_name" : "SQLI",
                     "method" : self.packet.request["method"],
@@ -188,7 +190,7 @@ class AttackVector:
             for param in params.split("&"):
                 data = param.split("=")
 
-                if len(data) == 2 and (data[1].lower() == "asc" or data[1].lower() == "desc" or data[0].lower().find("order") != -1):
+                if len(data) == 2 and (data[1].lower() == "asc" or data[1].lower() == "desc" or "table" in data[0].lower() or data[0].lower().find("order") != -1):
                     self.__set_result({
                         "detect_name" : "SQLI",
                         "method" : self.packet.request["method"],
@@ -276,7 +278,7 @@ class AttackVector:
 
 
     def __detect_S3_bucket(self):
-        
+
         ##  response body 값이 엄청 클 경우(js, css), 해당 파일을 정규 표현식으로 검사하는 과정에서 상당한 시간이 소요됨.
         ##  따라서, js css 파일은 검사하지 않도록 설정
         url_extension = urlparse(self.packet.request["url"]).path.split(".")[::-1][0]
@@ -520,7 +522,7 @@ class AttackVector:
         for result in self.attack_vector_result:
 
             result_path = result["url"].split("?")[0]
-            if detect_name == result["detect_name"] and cur_path == result_path:
+            if detect_name == result["detect_name"] and cur_path == result_path and data["vuln_parameter"] == result["vuln_parameter"]:
                 return
         
         self.attack_vector_result.append(data)

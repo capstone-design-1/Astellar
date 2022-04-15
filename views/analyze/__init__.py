@@ -62,10 +62,8 @@ def checkContentType(packet) -> bool:
     filter_content_type_list = [
         "audio/aac",
         "application/x-abiword",
-        "application/octet-stream",
         "video/x-msvideo",
         "application/vnd.amazon.ebook",
-        "application/octet-stream",
         "application/x-bzip",
         "application/x-bzip2",
         "application/x-csh",

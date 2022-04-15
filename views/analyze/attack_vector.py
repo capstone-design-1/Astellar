@@ -29,6 +29,7 @@ class AttackVector:
         self.__detect_KeyLeak()
         self.__detect_S3_bucket()
         self.__detect_IDOR()
+        self.__detect_file_download()
     
 
     def __set_target(self):
@@ -518,7 +519,26 @@ class AttackVector:
                     "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
                     "file_path" : self.file_path
                 })
-            
+    
+
+    def __detect_file_download(self):
+        if not "Content-Disposition" in self.packet.response["header"].keys():
+            return
+        
+        if "filename=" in self.packet.response["header"]["Content-Disposition"]:
+            self.__set_result({
+                "detect_name" : "File Download",
+                "method" : self.packet.request["method"],
+                "url" : self.target_host + self.packet.request["url"],
+                "body" : "",
+                "vuln_parameter" : "",
+                "risk" : "medium",
+                "file_name" : self.file_name,
+                "reference" : "",
+                "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                "file_path" : self.file_path
+            })
+
 
     def __set_result(self, data: dict):
         detect_name = data["detect_name"]

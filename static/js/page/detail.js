@@ -152,36 +152,59 @@ function setPacketCount(packet_count){
 
 function setWappalyzer(data){
     const selector = document.getElementsByClassName("wappalyer-result")[0];
-    const html = `  <div class="col-sm-3 grid-margin">
+    const detect_name_html = `<th class='table-wappalyzer'>{{name}}</th>`;
+    const detect_detail_html = `<td>{{name}}</td>`;
+    const html = `  <div class="col-sm-4 grid-margin">
                         <div class="card">
                             <div class="card-body">
-                                <h3>{{tech_name}}</h3>
-                                <div class="row">
-                                    <div class="col-8 col-sm-12 col-xl-8 my-auto">
-                                        <div class="d-flex d-sm-block d-md-flex align-items-center">
-                                            <h5 class="mb-0">{{detect_list}}</h5>
-                                        </div>
-                                    </div>
-                                </div>
+                                <h3 class="card-title mb-1">🗺️ Server Info</h3>
+                                <br>
+                                <h4> {{target_name}} </h4>
+                                <table class="table table-wappalyzer">
+                                    <thead>
+                                        <tr>
+                                            {{detect_name}}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            {{detect_detail}}
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
-                        </div>
-                    </div>`;
-    const detect_list = `<h5 class="mb-0">{{detect_name}}</h5>`;
+                        </div>`;
     
     selector.innerHTML = "";
-    let template = '';
 
-    for(let key of Object.keys(data)){
-        let detect_list_template = '';
+    for(let target_name of Object.keys(data)){
 
-        for(let detect_name of Object.keys(data[key])){
-            detect_list_template += detect_list.replace("{{detect_name}}", detect_name + " " + data[key][detect_name]);
+        let th_template = '';
+        let td_template = '';
+        for(let detect_name of Object.keys(data[target_name])){
+            th_template += detect_name_html.replace("{{name}}", detect_name);
+
+            let tmp = [];
+            for(let detect_detail of Object.keys(data[target_name][detect_name])){
+
+                // 버전 정보가 없을 경우
+                if(data[target_name][detect_name][detect_detail].length == 0){
+                    tmp.push(detect_detail);
+                }
+                else{
+                    tmp.push(`${detect_detail} / ${data[target_name][detect_name][detect_detail]}`);
+                }
+            }
+
+            td_template += detect_detail_html.replace("{{name}}", tmp.join("<br><br>"));
         }
 
-        template += html.replace("{{tech_name}}", key).replace("{{detect_list}}", detect_list_template);
-    }
+        let template = html.replace("{{target_name}}", target_name)
+                            .replace("{{detect_name}}", th_template)
+                            .replace("{{detect_detail}}", td_template);
 
-    selector.innerHTML = template;
+        selector.innerHTML += template;
+    }
 }
 
 function setAttackVectorCount(count){

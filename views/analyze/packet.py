@@ -9,7 +9,7 @@ class Packet:
                 "url" : "/dashboard?idx=1",
                 "http_protocol" : "HTTP/1.1",
                 "header" : {
-                    "Host" : "casper.or.kr",
+                    "Host" : "casper.or.kr:443",    ### or   casper.or.kr
                     "Cookies" : "test=1; php=asdf; aaaa=bbbb",
                     "User-Agent" : "asdf",
                     ...

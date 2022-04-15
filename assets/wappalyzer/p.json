@@ -41,7 +41,7 @@
     "cookies": {
       "PHPSESSID": ""
     },
-    "cpe": "cpe:/a:php:php",
+    "cpe": "cpe:2.3:a:php:php:-:*:*:*:*:*:*:*",
     "description": "PHP is a general-purpose scripting language used for web development.",
     "headers": {
       "Server": "php/?([\\d.]+)?\\;version:\\1",
@@ -55,7 +55,7 @@
     "cats": [
       1
     ],
-    "cpe": "cpe:/a:phpnuke:php-nuke",
+    "cpe": "cpe:2.3:a:phpnuke:php-nuke:-:*:*:*:*:*:*:*",
     "html": "<[^>]+Powered by PHP-Nuke",
     "icon": "PHP-Nuke.png",
     "implies": "PHP",
@@ -82,7 +82,6 @@
     "cats": [
       1
     ],
-    "cpe": "cpe:/a:phpfusion:phpfusion",
     "headers": {
       "X-PHPFusion": "(.+)$\\;version:\\1",
       "X-Powered-By": "PHPFusion (.+)$\\;version:\\1"
@@ -862,7 +861,7 @@
     "cats": [
       27
     ],
-    "cpe": "cpe:/a:perl:perl",
+    "cpe": "cpe:2.3:a:perl:perl:-:*:*:*:*:*:*:*",
     "description": "Perl is a family of two high-level, general-purpose, interpreted, dynamic programming languages.",
     "headers": {
       "Server": "\\bPerl\\b(?: ?/?v?([\\d.]+))?\\;version:\\1"
@@ -2445,7 +2444,7 @@
     "cats": [
       27
     ],
-    "cpe": "cpe:/a:python:python",
+    "cpe": "cpe:2.3:a:python:python:-:*:*:*:*:*:*:*",
     "description": "Python is an interpreted and general-purpose programming language.",
     "headers": {
       "Server": "(?:^|\\s)Python(?:/([\\d.]+))?\\;version:\\1"

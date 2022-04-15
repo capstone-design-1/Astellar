@@ -1163,7 +1163,7 @@
       "ASP.NET_SessionId": "",
       "ASPSESSION": ""
     },
-    "cpe": "cpe:/a:microsoft:asp.net",
+    "cpe": "cpe:2.3:a:microsoft:asp.net:-:*:*:*:*:*:*:*",
     "description": "ASP.NET is an open-source, server-side web-application framework designed for web development to produce dynamic web pages.",
     "headers": {
       "X-AspNet-Version": "(.+)\\;version:\\1",
@@ -1759,7 +1759,7 @@
     "cats": [
       34
     ],
-    "cpe": "cpe:/a:mongodb:mongodb",
+    "cpe": "cpe:2.3:a:mongodb:mongodb:-:*:*:*:*:*:*:*",
     "description": "MongoDB is a document-oriented NoSQL database used for high volume data storage.",
     "icon": "MongoDB.png",
     "website": "http://www.mongodb.org"
@@ -1849,7 +1849,7 @@
       "MOODLEID_": "",
       "MoodleSession": ""
     },
-    "cpe": "cpe:/a:moodle:moodle",
+    "cpe": "cpe:2.3:a:moodle:moodle:-:*:*:*:*:*:*:*",
     "description": "Moodle is a free and open-source Learning Management System (LMS) written in PHP and distributed under the GNU General Public License.",
     "html": "<img[^>]+moodlelogo",
     "icon": "Moodle.png",
@@ -2124,7 +2124,7 @@
     "cats": [
       34
     ],
-    "cpe": "cpe:/a:mysql:mysql",
+    "cpe": "cpe:2.3:a:mysql:mysql:-:*:*:*:*:*:*:*",
     "description": "MySQL is an open-source relational database management system.",
     "icon": "MySQL.svg",
     "website": "http://mysql.com"

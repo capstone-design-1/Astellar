@@ -437,7 +437,7 @@
       18,
       22
     ],
-    "cpe": "cpe:/a:zeit:next.js",
+    "cpe": "cpe:2.3:a:zeit:next.js:-:*:*:*:*:*:*:*",
     "description": "Next.js is a React framework for developing single page Javascript applications.",
     "headers": {
       "x-powered-by": "^Next\\.js ?([0-9.]+)?\\;version:\\1"
@@ -492,7 +492,7 @@
       22,
       64
     ],
-    "cpe": "cpe:/a:nginx:nginx",
+    "cpe": "cpe:2.3:a:f5:nginx:-:*:*:*:*:*:*:*",
     "description": "Nginx is a web server that can also be used as a reverse proxy, load balancer, mail proxy and HTTP cache.",
     "headers": {
       "Server": "nginx(?:/([\\d.]+))?\\;version:\\1",
@@ -601,7 +601,7 @@
     "cats": [
       27
     ],
-    "cpe": "cpe:/a:nodejs:node.js",
+    "cpe": "cpe:2.3:a:nodejs:node.js:-:*:*:*:*:*:*:*",
     "description": "Node.js is an open-source, cross-platform, JavaScript runtime environment that executes JavaScript code outside a web browser.",
     "icon": "node.js.png",
     "website": "http://nodejs.org"

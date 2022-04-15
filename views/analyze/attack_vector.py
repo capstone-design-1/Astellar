@@ -358,10 +358,19 @@ class AttackVector:
 
 
     def __detect_IDOR(self):
-        if self.packet.response["status_code"] != 200:
+        if self.packet.response["status_code"] != '200':
             return
 
         url_parse = urlparse(self.packet.request["url"])
+        if url_parse.path in self.idor_url_check:
+            return
+        
+        filter_url = ["css", "js", "png", "jpg", "jpeg", "gif", "svg", "scss"]
+        for filter in filter_url:
+            if url_parse.path.split(".")[::-1][0].lower() == filter:
+                return
+
+        self.idor_url_check.append(urlparse(self.packet.request["url"]).path)
 
         ##  파라미터가 있는 경우
         if len(url_parse.query) != 0:
@@ -385,7 +394,6 @@ class AttackVector:
                                 "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
                                 "file_path" : self.file_path
                             })
-                            self.idor_url_check.append(urlparse(self.packet.request["url"]).path)
 
             elif self.packet.request["method"] == "POST":
                 if not "Content-Type" in self.packet.request["header"].keys():
@@ -411,7 +419,6 @@ class AttackVector:
                                     "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
                                     "file_path" : self.file_path
                                 })
-                                self.idor_url_check.append(urlparse(self.packet.request["url"]).path)
 
                 elif "application/json" in self.packet.request["header"]["Content-Type"]:
                     try:
@@ -436,7 +443,6 @@ class AttackVector:
                                     "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
                                     "file_path" : self.file_path
                                 })
-                                self.idor_url_check.append(urlparse(self.packet.request["url"]).path)
 
 
                 else:
@@ -512,7 +518,6 @@ class AttackVector:
                     "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
                     "file_path" : self.file_path
                 })
-                self.idor_url_check.append(urlparse(self.packet.request["url"]).path)
             
 
     def __set_result(self, data: dict):

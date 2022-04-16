@@ -112,8 +112,6 @@ class Wappalyzer:
                     self.setResult(category, request["header"][header][regex_result.span()[0] : ].split(" ")[0], request["header"]["Host"], cpe)
 
             if header in response["header"].keys():
-                if "php" == info.lower() and header == "X-Powered-By":
-                    print(1)
                 p = pattern.split("\\;")[0]
                 regex_result = re.search(p, response["header"][header].lower(), re.I)
                 
@@ -152,7 +150,6 @@ class Wappalyzer:
         for self_detect_name in self.wappalyer_result[target_host]["CPE"]:
             if self_detect_name == detect_name:
                 self_tmp_cpe = self.wappalyer_result[target_host]["CPE"][self_detect_name].split(":")
-                print(self_detect_name, self_tmp_cpe)
                 if self_tmp_cpe[1] == "2.3" and self_tmp_cpe[5] != "*":
                     return
 

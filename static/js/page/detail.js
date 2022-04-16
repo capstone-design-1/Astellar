@@ -1,13 +1,14 @@
-window.onload = function(){
-    const refresh_btn = document.getElementsByClassName("subdomain-refresh-btn");
-    const target_name = document.getElementsByName("target_name")[0].value;
-    const monitor_path = document.getElementsByName("monitor_path")[0].value;
+let prev_attack_vector = [];
+const socket = io();
+const refresh_btn = document.getElementsByClassName("subdomain-refresh-btn");
+const target_name = document.getElementsByName("target_name")[0].value;
+const monitor_path = document.getElementsByName("monitor_path")[0].value;
 
+window.onload = function(){
     if(refresh_btn.length != 0){
         refresh_btn[0].addEventListener("click", () => { searchSubdomain(target_name); });
     }
 
-    var socket = io();
     socket.on('connect', function() {
         socket.emit('message', {"target": target_name, "monitor_path" : monitor_path});
     });
@@ -33,16 +34,15 @@ window.onload = function(){
                     setAttackVectorCount(data[key].length);
                     setAttackVector(data[key]);
                     break;
+                case "modal":
+                    setModalDetail(data[key]);
+                    break;
+                case "cve_modal":
+                    setCveDetail(data[key]);
+                    break;
             }
         }
     });
-
-    
-    const get_realtime_data = setInterval(()=> {
-        socket.emit("get_realtime_data", {"target": target_name});
-    }, 3000);
-
-    initSubdomain(target_name);
 
     function initSubdomain(target_name){
         try{
@@ -85,6 +85,29 @@ window.onload = function(){
             console.log(error);
         }
     }
+
+
+    function initStart(target_name){
+        try{
+            fetch(`/api/start?target=${target_name}`)
+            .then((res) => res.json())
+            .then((data) => {
+                if(data["error"]){
+                    alert(data["message"]);
+                    // location.href='/';
+                }
+            })
+        }
+        catch{
+            alert("proxify 프로그램이 실행되지 않았습니다.");
+            // location.href='/';
+        }
+    }
+
+    socket.emit("get_realtime_data", {"target": target_name});
+
+    initSubdomain(target_name);
+    initStart(target_name);
 }
 
 function setSubdomain(data){
@@ -132,36 +155,62 @@ function setPacketCount(packet_count){
 
 function setWappalyzer(data){
     const selector = document.getElementsByClassName("wappalyer-result")[0];
-    const html = `  <div class="col-sm-3 grid-margin">
+    const detect_name_html = `<th class='table-wappalyzer'>{{name}}</th>`;
+    const detect_detail_html = `<td>{{name}}</td>`;
+    const html = `  <div class="col-sm-4 grid-margin">
                         <div class="card">
                             <div class="card-body">
-                                <h3>{{tech_name}}</h3>
-                                <div class="row">
-                                    <div class="col-8 col-sm-12 col-xl-8 my-auto">
-                                        <div class="d-flex d-sm-block d-md-flex align-items-center">
-                                            <h5 class="mb-0">{{detect_list}}</h5>
-                                        </div>
-                                    </div>
-                                </div>
+                                <h3 class="card-title mb-1">🗺️ Server Info</h3>
+                                <br>
+                                <h4> {{target_name}} </h4>
+                                <table class="table table-wappalyzer">
+                                    <thead>
+                                        <tr>
+                                            {{detect_name}}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            {{detect_detail}}
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
-                        </div>
-                    </div>`;
-    const detect_list = `<h5 class="mb-0">{{detect_name}}</h5>`;
+                        </div>`;
     
     selector.innerHTML = "";
-    let template = '';
 
-    for(let key of Object.keys(data)){
-        let detect_list_template = '';
+    for(let target_name of Object.keys(data)){
 
-        for(let detect_name of Object.keys(data[key])){
-            detect_list_template += detect_list.replace("{{detect_name}}", detect_name + " " + data[key][detect_name]);
+        let th_template = '';
+        let td_template = '';
+        for(let detect_name of Object.keys(data[target_name])){
+            if (detect_name == "CPE"){
+                continue;
+            }
+            th_template += detect_name_html.replace("{{name}}", detect_name);
+
+            let tmp = [];
+            for(let detect_detail of Object.keys(data[target_name][detect_name])){
+
+                // 버전 정보가 없을 경우
+                if(data[target_name][detect_name][detect_detail].length == 0){
+                    tmp.push(detect_detail);
+                }
+                else{
+                    tmp.push(`${detect_detail} / ${data[target_name][detect_name][detect_detail]}`);
+                }
+            }
+
+            td_template += detect_detail_html.replace("{{name}}", tmp.join("<br><br>"));
         }
 
-        template += html.replace("{{tech_name}}", key).replace("{{detect_list}}", detect_list_template);
-    }
+        let template = html.replace("{{target_name}}", target_name)
+                            .replace("{{detect_name}}", th_template)
+                            .replace("{{detect_detail}}", td_template);
 
-    selector.innerHTML = template;
+        selector.innerHTML += template;
+    }
 }
 
 function setAttackVectorCount(count){
@@ -171,22 +220,39 @@ function setAttackVectorCount(count){
 
 function setAttackVector(data){
     const selector = document.getElementsByClassName("attack-vector-result")[0].querySelector("tbody");
+
+    if(prev_attack_vector.length == 0){
+        selector.innerHTML = '';
+    }
+    if(prev_attack_vector.length == data.length){
+        return;
+    }
+    const risk_info = `<div class="badge badge-outline-primary">Info</div>`;
     const risk_low = `<div class="badge badge-outline-success">Low</div>`;
     const risk_medium = `<div class="badge badge-outline-warning">Medium</div>`;
     const risk_high = `<div class="badge badge-outline-danger">High</div>`;
-    const html = `<tr>
+    const html = `<tr data-toggle="modal" data-target="#exampleModalCenter" onclick='setModal(this);' data-value='{{data-value}}'>
                     <td width="200px"> {{detect_name}} </td>
                     <td width="200px"> <div class="badge badge-success">{{method}}</div> </td>
-                    <td width="200px"> <a href="{{url}}" target="_blank">{{url}}</a> </td>
+                    <td width="200px"> <a href="{{full_url}}" target="_blank">{{url}}</a> </td>
                     <td width="200px"> {{vuln_parameter}} </td>
                     <td width="200px"> {{risk}} </td>
+                    <td width="200px"> {{time}} </td>
                 </tr>`;
     
     let template = ``;
-
+    let count = 0;
     for(const analyze of data){
+        if(prev_attack_vector.length > count){
+            count++;
+            continue;
+        }
+
         let risk = ``;
-        if(analyze["risk"] == "low"){
+        if(analyze["risk"] == "info"){
+            risk = risk_info;
+        }
+        else if(analyze["risk"] == "low"){
             risk = risk_low;
         }
         else if(analyze["risk"] == "medium"){
@@ -196,13 +262,115 @@ function setAttackVector(data){
             risk = risk_high;
         }
 
+        let path = new URL(analyze["url"]);
+        path = path.href.replace(path.origin, "");
+        
+        if(path.length > 35){
+            path = path.substring(0, 35) + "...";
+        }
+
+
         template += html.replace("{{detect_name}}", analyze["detect_name"])
                         .replace("{{method}}", analyze["method"])
-                        .replace(/{{url}}/g, analyze["url"])
+                        .replace("{{full_url}}", escapeHTML(analyze["url"]))
+                        .replace("{{url}}", escapeHTML(path))
                         .replace("{{vuln_parameter}}", analyze["vuln_parameter"])
-                        .replace("{{risk}}", risk);
+                        .replace("{{risk}}", risk)
+                        .replace("{{time}}", analyze["detect_time"])
+                        .replace("{{data-value}}", escapeHTML(JSON.stringify(analyze)));
     }
 
-    selector.innerHTML = template;
+    selector.innerHTML += template;
+    prev_attack_vector = data;
+}
+
+
+function setModal(e){
+    const data = JSON.parse(e.dataset.value);
+
+    // modal_body.innerHTML = data["url"];
+
+    socket.emit("get_packet_detail", {
+        "target": target_name, 
+        "file_path" : data["file_path"],
+        "file_name" : data["file_name"]
+    });
+}
+
+
+function setModalDetail(data, mode="request"){
+    const modal_packet = document.getElementsByClassName("modal-packet")[0];
+    let packet = `<button type="button" class="btn btn-outline-info btn-fw modal-request-btn">Request</button>
+                            <button type="button" class="btn btn-outline-info btn-fw modal-response-btn">Response</button><Br><Br>`;
+
+    if(mode == "request"){
+        packet += `<code>${data[mode]["method"]}</code> ${data[mode]["url"]} ${data[mode]["http_protocol"] }<br>`
+    }
+    else if(mode == "response"){
+        packet += `${data[mode]["http_protocol"]} <code>${data[mode]["status_code"]}</code> ${data[mode]["reason"] }<br>`
+    }
+
+    for(let header_key in data[mode]["header"]){
+        packet += `<code>${header_key}</code>: ${escapeHTML(data[mode]["header"][header_key])}<br>`;
+    }
+    packet += `<br>${escapeHTML(data[mode]["body"])}`;
+
+    modal_packet.innerHTML = packet;
+
+    document.getElementsByClassName("modal-request-btn")[0].addEventListener("click", () => {
+        setModalDetail(data);
+    });
+    document.getElementsByClassName("modal-response-btn")[0].addEventListener("click", () => {
+        setModalDetail(data, "response");
+    });
+}
+
+
+function setCve(){
+    socket.emit("get_cve", {
+        "target" : target_name
+    })
+}
+
+function setCveDetail(data){
+    const selector = document.getElementsByClassName("cve-detail")[0];
+    const cve_name = `<li>{{cve_name}}</li>`;
+    const cve_more_name = `<details>
+                                <summary>More CVE</summary>
+                                {{tmp_cve_name}}
+                            </details>`;
+    const html = `  <div class="col-6">
+                        <h4 class="text-success"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{detect_name}} </h4>
+                        <ul class="list-ticked">
+                            {{cve_list}}
+                        </ul>
+                    </div>`;
     
+    selector.innerHTML = "";
+
+    for(let detect_name of Object.keys(data["cve"])){
+        let cve_name_template = '';
+        let tmp_template = '';
+
+        for(let idx in data["cve"][detect_name]){
+            if(idx >= 10){
+                tmp_template += cve_name.replace("{{cve_name}}", data["cve"][detect_name][idx]);
+            }
+            else{
+                cve_name_template += cve_name.replace("{{cve_name}}", data["cve"][detect_name][idx]);
+            }
+        }
+        cve_name_template += cve_more_name.replace("{{tmp_cve_name}}", tmp_template);
+
+        selector.innerHTML += html.replace("{{cve_list}}", cve_name_template)
+                        .replace("{{detect_name}}", detect_name);
+    }
+}
+
+
+function escapeHTML(data){
+    return data.replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/'/g, "&apos;")
+                .replace(/"/g, "&quot;");
 }

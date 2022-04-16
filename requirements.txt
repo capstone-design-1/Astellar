@@ -3,3 +3,6 @@ requests
 flask-socketio
 favicon
 shodan
+psutil
+selenium
+webdriver-manager

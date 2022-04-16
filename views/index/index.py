@@ -22,7 +22,7 @@ def index():
         target_data.append({})
 
         try:
-            favicon_url = favicon.get("http://" + folder_name)[0].url
+            favicon_url = favicon.get("http://" + folder_name, timeout = 2)[0].url
         except:
             favicon_url = "/images/favicon.png"
 
@@ -34,4 +34,4 @@ def index():
 
 
 
-    return render_template("index.html", target_data=target_data)
+    return render_template("index.html", target_data=target_data, save_dir_path = current_app.config["SAVE_DIR_PATH"],)

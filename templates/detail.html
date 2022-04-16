@@ -7,13 +7,13 @@
     <title>Astellar | detail</title>
     <!-- plugins:css -->
     <link rel="stylesheet" href="/vendors/mdi/css/materialdesignicons.min.css">
-    <link rel="stylesheet" href="/vendors/css/vendor.bundle.base.css">
+    <!-- <link rel="stylesheet" href="/vendors/css/vendor.bundle.base.css"> -->
     <!-- endinject -->
     <!-- Plugin css for this page -->
-    <link rel="stylesheet" href="/vendors/jvectormap/jquery-jvectormap.css">
-    <link rel="stylesheet" href="/vendors/flag-icon-css/css/flag-icon.min.css">
+    <!-- <link rel="stylesheet" href="/vendors/jvectormap/jquery-jvectormap.css">
+    <link rel="stylesheet" href="/vendors/flag-icon-css/css/flag-icon.min.css"> -->
     <link rel="stylesheet" href="/vendors/owl-carousel-2/owl.carousel.min.css">
-    <link rel="stylesheet" href="/vendors/owl-carousel-2/owl.theme.default.min.css">
+    <!-- <link rel="stylesheet" href="/vendors/owl-carousel-2/owl.theme.default.min.css"> -->
     <!-- End plugin css for this page -->
     <!-- inject:css -->
     <!-- endinject -->
@@ -25,6 +25,63 @@
 
   </head>
   <body>
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalCenterTitle">💡Attack Vector Detail</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-6 modal-packet">
+              </div>
+              <div class="col-6 modal-packet2">
+                
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="cve-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalCenterTitle">💡CVE Detail</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row cve-detail">
+              <div class="col-2">
+              </div>
+              <div class="col-8">
+                <center>
+                  정보를 가져오는 중 입니다.<br>
+                  <div class="lds-ring lds-ring-green">
+                    <div></div>
+                  </div>
+                </center>
+              </div>
+              <div class="col-2">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <input type="hidden" name="target_name" value="{{return_data['target_name']}}">
     <input type="hidden" name="monitor_path" value="{{return_data['monitor_path']}}">
     <div class="container-scroller">
@@ -191,7 +248,7 @@
             </ul>
             <ul class="navbar-nav navbar-nav-right">
               <li class="nav-item dropdown d-none d-lg-block">
-                <a class="nav-link btn btn-success create-new-button" id="createbuttonDropdown" data-toggle="dropdown" aria-expanded="false" href="#">+ Create New Project</a>
+                <!-- <a class="nav-link btn btn-success create-new-button" id="createbuttonDropdown" data-toggle="dropdown" aria-expanded="false" href="#">+ Create New Project</a> -->
                 <div class="dropdown-menu dropdown-menu-right navbar-dropdown preview-list" aria-labelledby="createbuttonDropdown">
                   <h6 class="p-3 mb-0">Projects</h6>
                   <div class="dropdown-divider"></div>
@@ -416,14 +473,13 @@
                   </div>
                 </div>
               </div>
-              <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
+              <div class="col-xl-3 col-sm-6 grid-margin stretch-card" data-toggle="modal" data-target="#cve-modal" onclick="setCve()">
                 <div class="card">
                   <div class="card-body">
                     <div class="row">
                       <div class="col-9">
                         <div class="d-flex align-items-center align-self-start">
-                          <h3 class="mb-0">$12.34</h3>
-                          <p class="text-danger ml-2 mb-0 font-weight-medium">-2.4%</p>
+                          <h3 class="mb-0">Click Here</h3>
                         </div>
                       </div>
                       <div class="col-3">
@@ -432,7 +488,7 @@
                         </div>
                       </div>
                     </div>
-                    <h6 class="text-muted font-weight-normal">Daily Income</h6>
+                    <h6 class="text-muted font-weight-normal">Detect CVE</h6>
                   </div>
                 </div>
               </div>
@@ -461,7 +517,7 @@
               <div class="col-md-8 grid-margin stretch-card">
                 <div class="card">
                   <div class="card-body">
-                    <h3 class="card-title">Attack Vector</h3>
+                    <h3 class="card-title">🛡️ Attack Vector</h3>
                     <div class="table-responsive">
                       <table class="table table-hover attack-vector-result">
                         <thead>
@@ -471,6 +527,7 @@
                             <th> URL </th>
                             <th> Vuln Parameter </th>
                             <th> Risk </th>
+                            <th> Time </th>
                           </tr>
                         </thead>
                         <tbody>
@@ -527,7 +584,7 @@
                 <div class="card">
                   <div class="card-body">
                     <div class="d-flex flex-row justify-content-between">
-                      <h3 class="card-title mb-1">Sub domains</h3>
+                      <h3 class="card-title mb-1">🗺️ Sub domains</h3>
                       <p class="text-muted mb-1 latest-update"></p>
                     </div>
                     <div class="d-flex flex-row justify-content-between">
@@ -618,18 +675,58 @@
                 </div>
               </div>
             </div>
+            <hr>
+            <hr>
+            <hr>
             <div class="row wappalyer-result">
-              <!-- <div class="col-sm-3 grid-margin">
+              <!-- <div class="col-sm-4 grid-margin">
                 <div class="card">
                   <div class="card-body">
-                    <h3>Revenue</h3>
-                    <div class="row">
-                      <div class="col-8 col-sm-12 col-xl-8 my-auto">
-                        <div class="d-flex d-sm-block d-md-flex align-items-center">
-                          <h5 class="mb-0">$32123</h5>
-                        </div>
-                      </div>
-                    </div>
+                    <h3 class="card-title mb-1">🗺️ Server Info</h3>
+                    <br>
+                    <h4>www.changwon.ac.kr</h4>
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th>Profile</th>
+                          <th>VatNo.</th>
+                          <th>Created</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Jacob</td>
+                          <td>53275531</td>
+                          <td>12 May 2017</td>
+                          <td><label class="badge badge-danger">Pending</label></td>
+                        </tr>
+                        <tr>
+                          <td>Messsy</td>
+                          <td>53275532</td>
+                          <td>15 May 2017</td>
+                          <td><label class="badge badge-warning">In progress</label></td>
+                        </tr>
+                        <tr>
+                          <td>John</td>
+                          <td>53275533</td>
+                          <td>14 May 2017</td>
+                          <td><label class="badge badge-info">Fixed</label></td>
+                        </tr>
+                        <tr>
+                          <td>Peter</td>
+                          <td>53275534</td>
+                          <td>16 May 2017</td>
+                          <td><label class="badge badge-success">Completed</label></td>
+                        </tr>
+                        <tr>
+                          <td>Dave</td>
+                          <td>53275535</td>
+                          <td>20 May 2017</td>
+                          <td><label class="badge badge-warning">In progress</label></td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div> -->

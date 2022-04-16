@@ -2,14 +2,14 @@ import json
 from urllib.parse import urlparse
 
 class Packet:
-    def __init__(self, packet_data: str, regex_result):
+    def __init__(self, packet_data: str, regex_result, file_name: str):
         """
             request = {
                 "method" : "POST",
                 "url" : "/dashboard?idx=1",
                 "http_protocol" : "HTTP/1.1",
                 "header" : {
-                    "Host" : "casper.or.kr",
+                    "Host" : "casper.or.kr:443",    ### or   casper.or.kr
                     "Cookies" : "test=1; php=asdf; aaaa=bbbb",
                     "User-Agent" : "asdf",
                     ...
@@ -18,7 +18,9 @@ class Packet:
             }
 
             response = {
+                "http_protocol" : "HTTP/1.1",
                 "status_code" : 200,
+                "reason" : "OK",   // ("Not Found", "Forbidden")
                 "header" : {
                     "Set-Cookie" : "asdf=asdf",
                     "Server" : "apache"
@@ -28,9 +30,15 @@ class Packet:
             } 
         
         """
+        self.file_name = file_name
+        self.target_host = self.__set_target_host()
         self.request = self.__set_request_packet(packet_data, regex_result)
         self.response = self.__set_response_packet(packet_data, regex_result)
-        
+    
+
+    def __set_target_host(self):
+        return self.file_name.split("-")[0]
+
 
     def __set_request_packet(self, packet_data: str, regex_result) -> dict:
         return_data = dict()
@@ -43,6 +51,7 @@ class Packet:
         else:
             return_data["body"] = ""
         return_data["header"] = dict()
+        return_data["header"]["Host"] = self.target_host
         method_list = ("GET", "POST", "OPTIONS", "DELETE", "PUT", "CONNECT", "HEAD")
 
         for header in request_header.split("\n"):
@@ -94,7 +103,15 @@ class Packet:
 
         headers = response_header.split("\n")
         if headers[0].startswith("HTTP/") == True:
-            return_data["status_code"] = headers[0].split(" ")[1]
+            tmp = headers[0].split(" ")
+
+            if len(tmp) < 3:
+                raise
+
+            return_data["http_protocol"] = tmp[0]
+            return_data["status_code"] = tmp[1]
+            return_data["reason"] = " ".join(tmp[2:])
+            
         else:
             raise
 
@@ -115,8 +132,18 @@ class Packet:
         return return_data
     
 
-    def requestToString(self) -> str:
-        return json.dumps(self.request)
+    def getRequestToRawData(self) -> str:
+        return_raw = f"{self.request['method']} {self.request['url']} {self.request['http_protocol']}\r\n"
+
+        for header in self.request["header"]:
+            return_raw += f"{header}: {self.request['header'][header]}\r\n"
+        
+        if self.request["method"] == "POST":
+            return_raw += f"\r\n{self.request['body']}"
+        else:
+            return_raw += f"\r\n"
+        
+        return return_raw
     
-    def responseToString(self) -> str:
+    def responseToRawData(self) -> str:
         return json.dumps(self.response)

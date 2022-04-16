@@ -1,6 +1,6 @@
-from flask import Flask, render_template
-from werkzeug.exceptions import HTTPException
+from flask import Flask
 from flask_socketio import SocketIO
+import os
 
 socketio = SocketIO()
 
@@ -22,6 +22,14 @@ def createApp():
 
     app.config["SAVE_DIR_PATH"] = "/tmp/data/"
     app.config["SECRET_KEY"] = "test"
+
+    try:
+        if not os.path.exists(app.config["SAVE_DIR_PATH"]):
+            os.makedirs(app.config["SAVE_DIR_PATH"])
+    except OSError as e:
+        print(f"[!] {app.config['SAVE_DIR_PATH']} 폴더를 생성하는 과정에서 에러가 발생 했습니다.")
+        print(e)
+        exit()
 
     socketio.init_app(app)
 

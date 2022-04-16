@@ -1,9 +1,14 @@
 from flask import Blueprint, render_template, current_app, abort, request
 import multiprocessing
+import re
+import time
+import requests
+
 
 from __init__ import socketio
 from views.func import getFolderNames
 from views.analyze import fileMonitoring
+from views.analyze.packet import Packet
 
 bp = Blueprint("detail", __name__, url_prefix = "/detail")
 
@@ -83,20 +88,101 @@ def disconnect():
                 check.pop(target)
             break
 
-# @socketio.on("alive-response")
-# def aliveResponse(data):
-#     global check
-#     global alive_response
-
-#     if not data["target"] in alive_response:
-#         alive_response.append(data["target"])
-
 @socketio.on("get_realtime_data")
 def getResultRealTime(data):
     global share_memory
 
     if data["target"] in share_memory.keys():
-        socketio.emit("receive", { 
-                                    "target" : data["target"],
-                                    "data" : share_memory[data["target"]]
-                                }, room = request.sid)
+
+        while True:
+            socketio.emit("receive", { 
+                "target" : data["target"],
+                "data" : share_memory[data["target"]]
+            }, room = request.sid)
+            
+            time.sleep(2)
+
+@socketio.on("get_packet_detail")
+def getPacketDetail(data):
+    global share_memory
+
+    if data["target"] in share_memory.keys():
+        file_path = data["file_path"]
+        file_name = data["file_name"]
+
+        ##  Security Check
+        if file_path.find("..") != -1 or file_name.find("..") != -1:
+            return
+        if file_path.split("/")[::-1][0] != file_name:
+            return
+        
+
+        with open(file_path, encoding="utf8", errors='ignore') as file_data:
+            packet_data = file_data.read()
+            regex_result = re.search("HTTP\/[0,1,2]{1}.[0,1]{1} \d{3} ", packet_data)
+
+            ##  요청 데이터만 있고 응답이 없는 경우
+            if regex_result == None:
+                return
+
+            packet = Packet(packet_data, regex_result, file_name)
+
+
+        socketio.emit("receive", {
+            "target" : data["target"],
+            "data" : {
+                "modal" : {
+                    "request" : packet.request,
+                    "response" : packet.response
+                }
+            }
+        }, room = request.sid)
+
+
+@socketio.on("get_cve")
+def getCve(data):
+    global share_memory
+    cve_result = dict()
+
+    if not data["target"] in share_memory.keys():
+        return
+    
+    CVE_API_KEY = "06c7445b-86a5-4777-bcb3-2398f6163c46"
+    api_url = "https://services.nvd.nist.gov/rest/json/cpes/1.0/"
+
+    wappalyzer = share_memory[data["target"]]["wappalyzer"]
+
+    for target in wappalyzer.keys():
+        for detect_name in wappalyzer[target]["CPE"].keys():
+            cpe = wappalyzer[target]["CPE"][detect_name][0]
+            version = wappalyzer[target]["CPE"][detect_name][1]
+
+            if cpe == "":
+                continue
+            if detect_name in cve_result.keys():
+                continue
+
+            param = {
+                "apiKey" : CVE_API_KEY,
+                "cpeMatchString" : cpe,
+                "addOns" : "cves",
+                "resultsPerPage" : "1"
+            }
+
+            try:
+                res = requests.get(api_url, params = param, timeout=2).json()
+                if len(version) == 0:
+                    cve_result[f'{detect_name}'] = res["result"]["cpes"][0]["vulnerabilities"][::-1]
+                else:
+                    cve_result[f'{detect_name} / {version}'] = res["result"]["cpes"][0]["vulnerabilities"][::-1]
+            except:
+                continue
+    
+    if len(cve_result) != 0:
+        socketio.emit("receive", {
+            "data" : {
+                "cve_modal" : {
+                    "cve" : cve_result
+                }
+            }
+        }, room = request.sid)

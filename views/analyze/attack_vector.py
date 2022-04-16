@@ -119,6 +119,34 @@ class AttackVector:
         # if textarea_tag :
         #     return_risk = "high"
 
+
+    def __detect_DOM_XSS(self):
+        try:
+            soup = BeautifulSoup(self.packet.response["body"], 'html.parser')
+        except:
+            return
+        if soup.find("html") == None :
+            return
+
+        js_tag = soup.find_all("script")
+        comp = re.compile('eval\(')
+        res = re.search(comp, str(js_tag))
+        if res:
+            self.__set_result({
+            "detect_name" : "DOM XSS",
+            "method" : self.packet.request["method"],
+            "url" : self.target_host + self.packet.request["url"],
+            "body" : self.packet.request["body"],
+            "vuln_parameter" : 'eval()',
+            "risk" : "high",
+            "file_name" : self.file_name,
+            "reference" : "",
+            "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+            "file_path" : self.file_path
+            })
+        return
+
+
     def __detect_KeyLeak (self):
         from . import reKey
         flag = []

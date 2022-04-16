@@ -10,3 +10,4 @@ compare["Square Access Token"] = re.compile("sq0atp-[0-9A-Za-z\\-_]{22}") #mobil
 compare["Twitter Access Token"] = re.compile("[tT][wW][iI][tT][tT][eE][rR].*[1-9][0-9]+-[0-9a-zA-Z]{40}")
 
 compKey = compare.keys()
+

@@ -471,7 +471,7 @@
     "cats": [
       1
     ],
-    "cpe": "cpe:/a:joomla:joomla",
+    "cpe": "cpe:2.3:a:joomla:joomla\\!:-:*:*:*:*:*:*:*",
     "description": "Joomla is a free and open-source content management system for publishing web content.",
     "headers": {
       "X-Content-Encoded-By": "Joomla! ([\\d.]+)\\;version:\\1"
@@ -652,7 +652,7 @@
     "cats": [
       59
     ],
-    "cpe": "cpe:/a:jquery:jquery",
+    "cpe": "cpe:2.3:a:jquery:jquery:-:*:*:*:*:*:*:*",
     "description": "jQuery is a JavaScript library which is a free, open-source software designed to simplify HTML DOM tree traversal and manipulation, as well as event handling, CSS animation, and Ajax.",
     "icon": "jQuery.svg",
     "js": {
@@ -746,7 +746,7 @@
     "cats": [
       59
     ],
-    "cpe": "cpe:/a:jquery:jquery_ui",
+    "cpe": "cpe:2.3:a:jquery:jquery_ui:-:*:*:*:*:*:*:*",
     "description": "jQuery UI is a collection of GUI widgets, animated visual effects, and themes implemented with jQuery, Cascading Style Sheets, and HTML.",
     "icon": "jQuery UI.svg",
     "implies": "jQuery",

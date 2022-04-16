@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, current_app, abort, request
 import multiprocessing
 import re
 import time
+import requests
 
 
 from __init__ import socketio
@@ -133,6 +134,55 @@ def getPacketDetail(data):
                 "modal" : {
                     "request" : packet.request,
                     "response" : packet.response
+                }
+            }
+        }, room = request.sid)
+
+
+@socketio.on("get_cve")
+def getCve(data):
+    global share_memory
+    cve_result = dict()
+
+    if not data["target"] in share_memory.keys():
+        return
+    
+    CVE_API_KEY = "06c7445b-86a5-4777-bcb3-2398f6163c46"
+    api_url = "https://services.nvd.nist.gov/rest/json/cpes/1.0/"
+
+    wappalyzer = share_memory[data["target"]]["wappalyzer"]
+
+    for target in wappalyzer.keys():
+        for detect_name in wappalyzer[target]["CPE"].keys():
+            cpe = wappalyzer[target]["CPE"][detect_name][0]
+            version = wappalyzer[target]["CPE"][detect_name][1]
+
+            if cpe == "":
+                continue
+            if detect_name in cve_result.keys():
+                continue
+
+            param = {
+                "apiKey" : CVE_API_KEY,
+                "cpeMatchString" : cpe,
+                "addOns" : "cves",
+                "resultsPerPage" : "1"
+            }
+
+            try:
+                res = requests.get(api_url, params = param, timeout=2).json()
+                if len(version) == 0:
+                    cve_result[f'{detect_name}'] = res["result"]["cpes"][0]["vulnerabilities"][::-1]
+                else:
+                    cve_result[f'{detect_name} / {version}'] = res["result"]["cpes"][0]["vulnerabilities"][::-1]
+            except:
+                continue
+    
+    if len(cve_result) != 0:
+        socketio.emit("receive", {
+            "data" : {
+                "cve_modal" : {
+                    "cve" : cve_result
                 }
             }
         }, room = request.sid)

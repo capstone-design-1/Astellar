@@ -37,6 +37,9 @@ window.onload = function(){
                 case "modal":
                     setModalDetail(data[key]);
                     break;
+                case "cve_modal":
+                    setCveDetail(data[key]);
+                    break;
             }
         }
     });
@@ -182,6 +185,9 @@ function setWappalyzer(data){
         let th_template = '';
         let td_template = '';
         for(let detect_name of Object.keys(data[target_name])){
+            if (detect_name == "CPE"){
+                continue;
+            }
             th_template += detect_name_html.replace("{{name}}", detect_name);
 
             let tmp = [];
@@ -291,9 +297,7 @@ function setModal(e){
     });
 }
 
-// TODO
-// request 에 GET /url
-// response 에 HTTP/200 asdf
+
 function setModalDetail(data, mode="request"){
     const modal_packet = document.getElementsByClassName("modal-packet")[0];
     let packet = `<button type="button" class="btn btn-outline-info btn-fw modal-request-btn">Request</button>
@@ -319,6 +323,48 @@ function setModalDetail(data, mode="request"){
     document.getElementsByClassName("modal-response-btn")[0].addEventListener("click", () => {
         setModalDetail(data, "response");
     });
+}
+
+
+function setCve(){
+    socket.emit("get_cve", {
+        "target" : target_name
+    })
+}
+
+function setCveDetail(data){
+    const selector = document.getElementsByClassName("cve-detail")[0];
+    const cve_name = `<li>{{cve_name}}</li>`;
+    const cve_more_name = `<details>
+                                <summary>More CVE</summary>
+                                {{tmp_cve_name}}
+                            </details>`;
+    const html = `  <div class="col-6">
+                        <h4 class="text-success"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{detect_name}} </h4>
+                        <ul class="list-ticked">
+                            {{cve_list}}
+                        </ul>
+                    </div>`;
+    
+    selector.innerHTML = "";
+
+    for(let detect_name of Object.keys(data["cve"])){
+        let cve_name_template = '';
+        let tmp_template = '';
+
+        for(let idx in data["cve"][detect_name]){
+            if(idx >= 10){
+                tmp_template += cve_name.replace("{{cve_name}}", data["cve"][detect_name][idx]);
+            }
+            else{
+                cve_name_template += cve_name.replace("{{cve_name}}", data["cve"][detect_name][idx]);
+            }
+        }
+        cve_name_template += cve_more_name.replace("{{tmp_cve_name}}", tmp_template);
+
+        selector.innerHTML += html.replace("{{cve_list}}", cve_name_template)
+                        .replace("{{detect_name}}", detect_name);
+    }
 }
 
 

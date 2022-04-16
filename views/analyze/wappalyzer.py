@@ -149,11 +149,12 @@ class Wappalyzer:
         ##  이미 탐지된 버전 정보가 있을 경우, CPE를 업데이트 하지 않음.
         for self_detect_name in self.wappalyer_result[target_host]["CPE"]:
             if self_detect_name == detect_name:
-                self_tmp_cpe = self.wappalyer_result[target_host]["CPE"][self_detect_name].split(":")
+                self_tmp_cpe = self.wappalyer_result[target_host]["CPE"][self_detect_name][0].split(":")
                 if self_tmp_cpe[1] == "2.3" and self_tmp_cpe[5] != "*":
                     return
-
-        self.wappalyer_result[target_host]["CPE"][detect_name] = ":".join(tmp_cpe)
+        self.wappalyer_result[target_host]["CPE"][detect_name] = list()
+        self.wappalyer_result[target_host]["CPE"][detect_name].append(":".join(tmp_cpe))
+        self.wappalyer_result[target_host]["CPE"][detect_name].append(detect_version)
 
 
     def setResult(self, category: list, info: str, target_host: str, cpe: str):

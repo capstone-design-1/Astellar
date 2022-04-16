@@ -51,7 +51,7 @@
     </div>
 
     <div class="modal fade" id="cve-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+      <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="exampleModalCenterTitle">💡CVE Detail</h5>
@@ -60,11 +60,18 @@
             </button>
           </div>
           <div class="modal-body">
-            <div class="row">
-              <div class="col-6 modal-packet">
+            <div class="row cve-detail">
+              <div class="col-2">
               </div>
-              <div class="col-6 modal-packet2">
-                
+              <div class="col-8">
+                <center>
+                  정보를 가져오는 중 입니다.<br>
+                  <div class="lds-ring lds-ring-green">
+                    <div></div>
+                  </div>
+                </center>
+              </div>
+              <div class="col-2">
               </div>
             </div>
           </div>

@@ -153,7 +153,10 @@ def getCve(data):
     wappalyzer = share_memory[data["target"]]["wappalyzer"]
 
     for target in wappalyzer.keys():
-        for detect_name, cpe in wappalyzer[target]["CPE"].items():
+        for detect_name in wappalyzer[target]["CPE"].keys():
+            cpe = wappalyzer[target]["CPE"][detect_name][0]
+            version = wappalyzer[target]["CPE"][detect_name][1]
+
             if cpe == "":
                 continue
             if detect_name in cve_result.keys():
@@ -168,7 +171,10 @@ def getCve(data):
 
             try:
                 res = requests.get(api_url, params = param, timeout=2).json()
-                cve_result[detect_name] = res["result"]["cpes"][0]["vulnerabilities"][::-1][:10]
+                if len(version) == 0:
+                    cve_result[f'{detect_name}'] = res["result"]["cpes"][0]["vulnerabilities"][::-1]
+                else:
+                    cve_result[f'{detect_name} / {version}'] = res["result"]["cpes"][0]["vulnerabilities"][::-1]
             except:
                 continue
     

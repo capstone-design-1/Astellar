@@ -37,6 +37,9 @@ window.onload = function(){
                 case "modal":
                     setModalDetail(data[key]);
                     break;
+                case "cve_modal":
+                    console.log(data[key]);
+                    break;
             }
         }
     });
@@ -182,6 +185,9 @@ function setWappalyzer(data){
         let th_template = '';
         let td_template = '';
         for(let detect_name of Object.keys(data[target_name])){
+            if (detect_name == "CPE"){
+                continue;
+            }
             th_template += detect_name_html.replace("{{name}}", detect_name);
 
             let tmp = [];
@@ -291,9 +297,7 @@ function setModal(e){
     });
 }
 
-// TODO
-// request 에 GET /url
-// response 에 HTTP/200 asdf
+
 function setModalDetail(data, mode="request"){
     const modal_packet = document.getElementsByClassName("modal-packet")[0];
     let packet = `<button type="button" class="btn btn-outline-info btn-fw modal-request-btn">Request</button>
@@ -319,6 +323,17 @@ function setModalDetail(data, mode="request"){
     document.getElementsByClassName("modal-response-btn")[0].addEventListener("click", () => {
         setModalDetail(data, "response");
     });
+}
+
+
+function setCve(){
+    socket.emit("get_cve", {
+        "target" : target_name
+    })
+}
+
+function setCveDetail(data){
+
 }
 
 

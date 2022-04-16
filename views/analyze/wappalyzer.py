@@ -57,7 +57,11 @@ class Wappalyzer:
                         continue
 
                     elif info == "headers" :
-                        self.detectHeader(request, response, tech_info[info], tech_info["cats"], tech)
+                        cpe = ""
+                        if "cpe" in tech_info.keys():
+                            cpe = tech_info["cpe"]
+
+                        self.detectHeader(request, response, tech_info[info], tech_info["cats"], tech, cpe)
 
                     elif info == "js":
                         continue
@@ -66,13 +70,17 @@ class Wappalyzer:
                         continue
 
                     elif info == "cookies":
-                        self.detectCookie(request, tech_info[info], tech_info["cats"], tech)
+                        cpe = ""
+                        if "cpe" in tech_info.keys():
+                            cpe = tech_info["cpe"]
+
+                        self.detectCookie(request, tech_info[info], tech_info["cats"], tech, cpe)
 
                     elif info == "website":
                         continue
                     
     
-    def detectCookie(self, request: dict, tech_info: dict, category: list, info: str):
+    def detectCookie(self, request: dict, tech_info: dict, category: list, info: str, cpe: str):
         """ request 패킷에 cookie 값을 검증하는 함수.
 
         Args:
@@ -81,7 +89,7 @@ class Wappalyzer:
             - category:  해당 분석 정보가 어느 부분인지(backend 언어 인지 frontend 언어 인지 구분을 위한 카테고리) 분류 번호가 들어 있음
             - info:      php 인지 nuxt.js 인지 등을 구분하기 위한 값.
         """
-        
+
         if not "Cookie" in request["header"].keys():
             return
 
@@ -90,11 +98,10 @@ class Wappalyzer:
         for tech_cookie in tech_info.keys():
             for cookie in request_cookie:
                 if tech_cookie == cookie.split("=")[0]:
-                    self.setResult(category, info, request["header"]["Host"])
+                    self.setResult(category, info, request["header"]["Host"], cpe)
     
 
-    def detectHeader(self, request: dict, response: dict, tech_info: dict, category: list, info: str):
-
+    def detectHeader(self, request: dict, response: dict, tech_info: dict, category: list, info: str, cpe: str):
         for header, pattern in tech_info.items():
 
             if header in request["header"].keys():
@@ -102,22 +109,57 @@ class Wappalyzer:
                 regex_result = re.search(p, request["header"][header], re.I)
 
                 if regex_result != None:
-                    self.setResult(category, request["header"][header][regex_result.span()[0] : ], request["header"]["Host"])
+                    self.setResult(category, request["header"][header][regex_result.span()[0] : ].split(" ")[0], request["header"]["Host"], cpe)
 
             if header in response["header"].keys():
+                if "php" == info.lower() and header == "X-Powered-By":
+                    print(1)
                 p = pattern.split("\\;")[0]
                 regex_result = re.search(p, response["header"][header].lower(), re.I)
                 
                 if regex_result != None:
-                    self.setResult(category, response["header"][header][regex_result.span()[0] : ], request["header"]["Host"])
+                    self.setResult(category, response["header"][header][regex_result.span()[0] : ].split(" ")[0], request["header"]["Host"], cpe)
 
     ## TODO
     ## 버전 구하는 기능
     def detectVersion(self, request: dict, response: dict, regex) -> str:
         pass
 
+    
+    def setCPE(self, detect_name: str, detect_version: str, cpe: str, target_host: str):
+        if not "CPE" in self.wappalyer_result[target_host].keys():
+            self.wappalyer_result[target_host]["CPE"] = dict()
+        try:
+            tmp_cpe = cpe.split(":")
+            if len(tmp_cpe) == 1:
+                return
+            if tmp_cpe[1] == "2.3":
+                if len(detect_version) == 0:
+                    tmp_cpe[5] = "*"
+                else:
+                    tmp_cpe[5] = detect_version
+            ## TODO
+            ## CPE 2.2 버전은 넣지 않음.
+            # else:
+            #     if len(detect_version) == 0:
+            #         tmp_cpe.append("*")
+            #     else:
+            #         tmp_cpe.append(detect_version)
+        except:
+            pass
+    
+        ##  이미 탐지된 버전 정보가 있을 경우, CPE를 업데이트 하지 않음.
+        for self_detect_name in self.wappalyer_result[target_host]["CPE"]:
+            if self_detect_name == detect_name:
+                self_tmp_cpe = self.wappalyer_result[target_host]["CPE"][self_detect_name].split(":")
+                print(self_detect_name, self_tmp_cpe)
+                if self_tmp_cpe[1] == "2.3" and self_tmp_cpe[5] != "*":
+                    return
 
-    def setResult(self, category: list, info: str, target_host: str):
+        self.wappalyer_result[target_host]["CPE"][detect_name] = ":".join(tmp_cpe)
+
+
+    def setResult(self, category: list, info: str, target_host: str, cpe: str):
         priority = dict()
 
         for cat in category:
@@ -137,6 +179,7 @@ class Wappalyzer:
         #     self.tmp_tech_result.append(info)
 
         data = info.split("/")
+        data[0] = data[0].replace(")", "")
         if len(data) > 2:
             print("[!] 예외 상황 발생 ", info)
         
@@ -146,3 +189,6 @@ class Wappalyzer:
         ##  버전 정보 입력
         if len(data) == 2:
             self.wappalyer_result[target_host][name][data[0]] = data[1]
+            self.setCPE(data[0], data[1], cpe, target_host)
+        else:
+            self.setCPE(data[0], "", cpe, target_host)

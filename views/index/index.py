@@ -22,7 +22,7 @@ def index():
         target_data.append({})
 
         try:
-            favicon_url = favicon.get("http://" + folder_name)[0].url
+            favicon_url = favicon.get("http://" + folder_name, timeout = 2)[0].url
         except:
             favicon_url = "/images/favicon.png"
 

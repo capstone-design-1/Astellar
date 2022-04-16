@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, current_app, abort, request
 import multiprocessing
 import re
+import time
 
 
 from __init__ import socketio
@@ -91,10 +92,14 @@ def getResultRealTime(data):
     global share_memory
 
     if data["target"] in share_memory.keys():
-        socketio.emit("receive", { 
-                                    "target" : data["target"],
-                                    "data" : share_memory[data["target"]]
-                                }, room = request.sid)
+
+        while True:
+            socketio.emit("receive", { 
+                "target" : data["target"],
+                "data" : share_memory[data["target"]]
+            }, room = request.sid)
+            
+            time.sleep(2)
 
 @socketio.on("get_packet_detail")
 def getPacketDetail(data):
@@ -119,7 +124,7 @@ def getPacketDetail(data):
             if regex_result == None:
                 return
 
-            packet = Packet(packet_data, regex_result)
+            packet = Packet(packet_data, regex_result, file_name)
 
 
         socketio.emit("receive", {

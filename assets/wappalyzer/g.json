@@ -340,7 +340,7 @@
     "cats": [
       28
     ],
-    "cpe": "cpe:/o:gentoo:linux",
+    "cpe": "cpe:2.3:o:gentoo:linux:-:*:*:*:*:*:*:*",
     "description": "Gentoo is a free operating system based on Linux.",
     "headers": {
       "X-Powered-By": "gentoo"
@@ -790,7 +790,7 @@
     "cats": [
       27
     ],
-    "cpe": "cpe:/a:golang:go",
+    "cpe": "cpe:2.3:a:golang:go:-:*:*:*:*:*:*:*",
     "icon": "Go.svg",
     "website": "https://golang.org"
   },
@@ -1162,7 +1162,7 @@
     "cats": [
       63
     ],
-    "cpe": "cpe:/a:google:cloud_platform",
+    "cpe": "cpe:2.3:a:google:cloud_platform:-:*:*:*:*:*:*:*",
     "description": "Google Cloud is a suite of cloud computing services.",
     "icon": "google_cloud.svg",
     "website": "https://cloud.google.com"
@@ -1400,7 +1400,7 @@
     "cats": [
       22
     ],
-    "cpe": "cpe:/a:google:web_server",
+    "cpe": "cpe:2.3:a:google:web_server:-:*:*:*:*:*:*:*",
     "headers": {
       "Server": "gws"
     },
@@ -1411,7 +1411,7 @@
     "cats": [
       18
     ],
-    "cpe": "cpe:/a:google:web_toolkit",
+    "cpe": "cpe:2.3:a:google:web_toolkit:-:*:*:*:*:*:*:*",
     "description": "Google Web Toolkit (GWT) is an open-source Java software development framework that makes writing AJAX applications.",
     "icon": "Google Web Toolkit.png",
     "implies": "Java",
@@ -1856,7 +1856,7 @@
     "cats": [
       47
     ],
-    "cpe": "cpe:/a:git-scm:git",
+    "cpe": "cpe:2.3:a:git-scm:git:-:*:*:*:*:*:*:*",
     "icon": "git.svg",
     "meta": {
       "generator": "\\bgit/([\\d.]+\\d)\\;version:\\1"
@@ -1867,7 +1867,7 @@
     "cats": [
       47
     ],
-    "cpe": "cpe:/a:gitlist:gitlist",
+    "cpe": "cpe:2.3:a:gitlist:gitlist:-:*:*:*:*:*:*:*",
     "html": "<p>Powered by <a[^>]+>GitList ([\\d.]+)\\;version:\\1",
     "implies": [
       "PHP",

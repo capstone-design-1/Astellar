@@ -295,8 +295,15 @@ function setAttackVector(data){
 
 
 function setModal(e){
+    const modal_packet = document.getElementsByClassName("modal-packet")[0];
+    const attack_vector_detail = document.getElementsByClassName("attack-vector-detail")[0];
     const data = JSON.parse(e.dataset.value);
 
+    modal_packet.innerHTML = `정보를 가져오는 중 입니다.<br>
+                            <div class="lds-ring lds-ring-green">
+                                <div></div>
+                            </div>`;
+    attack_vector_detail.innerHTML = "";
     // modal_body.innerHTML = data["url"];
 
     socket.emit("get_packet_detail", {
@@ -416,9 +423,17 @@ function setModalDetailInfo(detail, reflect_data){
         reference_template += reference_list_html.replace(/{{href}}/g, link);
     }
 
+    let tmp_vuln_parameter = '';
+    if(typeof reflect_data["vuln_parameter"] != "string"){
+        tmp_vuln_parameter = reflect_data["vuln_parameter"].join(", ");
+    }
+    else{
+        tmp_vuln_parameter = reflect_data["vuln_parameter"];
+    }
+
     let template = html.replace("{{risk}}", tmp_risk)
                         .replace("{{detect_name}}", reflect_data["detect_name"])
-                        .replace("{{vuln_parameter}}", reflect_data["vuln_parameter"].join(", "))
+                        .replace("{{vuln_parameter}}", tmp_vuln_parameter)
                         .replace("{{description}}", detail["description"])
                         .replace("{{payload}}", payload_template)
                         .replace("{{reference}}", reference_template);

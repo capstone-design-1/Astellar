@@ -36,6 +36,7 @@ window.onload = function(){
                     break;
                 case "modal":
                     setModalDetail(data[key]);
+                    setModalDetailInfo(data[key]["detail"], data[key]["reflect_data"])
                     break;
                 case "cve_modal":
                     setCveDetail(data[key]);
@@ -269,12 +270,20 @@ function setAttackVector(data){
             path = path.substring(0, 35) + "...";
         }
 
+        let tmp_vuln_parameter = ''
+        if(typeof analyze["vuln_parameter"] != "string"){
+            tmp_vuln_parameter = analyze["vuln_parameter"].join(", ")
+        }
+        else{
+            tmp_vuln_parameter = analyze["vuln_parameter"];
+        }
+
 
         template += html.replace("{{detect_name}}", analyze["detect_name"])
                         .replace("{{method}}", analyze["method"])
                         .replace("{{full_url}}", escapeHTML(analyze["url"]))
                         .replace("{{url}}", escapeHTML(path))
-                        .replace("{{vuln_parameter}}", analyze["vuln_parameter"])
+                        .replace("{{vuln_parameter}}", tmp_vuln_parameter)
                         .replace("{{risk}}", risk)
                         .replace("{{time}}", analyze["detect_time"])
                         .replace("{{data-value}}", escapeHTML(JSON.stringify(analyze)));
@@ -293,7 +302,13 @@ function setModal(e){
     socket.emit("get_packet_detail", {
         "target": target_name, 
         "file_path" : data["file_path"],
-        "file_name" : data["file_name"]
+        "file_name" : data["file_name"],
+        "detect_name" : data["detect_name"],
+        "reflect_data" : {
+            "detect_name" : data["detect_name"],
+            "vuln_parameter" : data["vuln_parameter"],
+            "risk" : data["risk"]
+        }
     });
 }
 
@@ -323,6 +338,92 @@ function setModalDetail(data, mode="request"){
     document.getElementsByClassName("modal-response-btn")[0].addEventListener("click", () => {
         setModalDetail(data, "response");
     });
+}
+
+
+function setModalDetailInfo(detail, reflect_data){
+    const selector = document.getElementsByClassName("attack-vector-detail")[0];
+    const risk_info = `<div class="badge badge-outline-primary">Info</div>`;
+    const risk_low = `<div class="badge badge-outline-success">Low</div>`;
+    const risk_medium = `<div class="badge badge-outline-warning">Medium</div>`;
+    const risk_high = `<div class="badge badge-outline-danger">High</div>`;
+    const payload_list_html = `<li>{{data}}</li>`;
+    const reference_list_html = `<li><a href='{{href}}' target="_blank">{{href}}</a></li>`
+    const html = `  <h3>Detail</h3>
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th width="80px"><center>Risk</center></th>
+                                <th width="120px"> Detect Name </th>
+                                <th> Vuln Parameter </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{{risk}}</td>
+                                <td>{{detect_name}}</td>
+                                <td>{{vuln_parameter}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <br>
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th> Information </th>
+                            </tr>
+                        </thead>
+                    </table>
+                    {{description}}<br><br>
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th> Payload </th>
+                            </tr>
+                        </thead>
+                    </table>
+                    {{payload}}<br><br>
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th> Reference </th>
+                            </tr>
+                        </thead>
+                    </table>
+                    {{reference}}`;
+
+    let tmp_risk = '';
+    if(reflect_data["risk"] == "info"){
+        tmp_risk = risk_info;
+    }
+    else if(reflect_data["risk"] == "low"){
+        tmp_risk = risk_low;
+    }
+    else if(reflect_data["risk"] == "medium"){
+        tmp_risk = risk_medium;
+    }
+    else if(reflect_data["risk"] == "high"){
+        tmp_risk = risk_high;
+    }
+
+    let payload_template = '';
+    for(let payload of detail["payload"]){
+        payload_template += payload_list_html.replace("{{data}}", escapeHTML(payload));
+    }
+
+    let reference_template = '';
+    for(let link of detail["reference"]){
+        reference_template += reference_list_html.replace(/{{href}}/g, link);
+    }
+
+    let template = html.replace("{{risk}}", tmp_risk)
+                        .replace("{{detect_name}}", reflect_data["detect_name"])
+                        .replace("{{vuln_parameter}}", reflect_data["vuln_parameter"].join(", "))
+                        .replace("{{description}}", detail["description"])
+                        .replace("{{payload}}", payload_template)
+                        .replace("{{reference}}", reference_template);
+    
+    selector.innerHTML = template;
 }
 
 

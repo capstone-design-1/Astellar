@@ -123,7 +123,7 @@ function createTarget(){
                 return;
             }
 
-            alert(data["message"]);
+            // alert(data["message"]);
             location.href = '';
         })
     }

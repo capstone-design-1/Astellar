@@ -30,6 +30,7 @@ class AttackVector:
         self.__detect_S3_bucket()
         self.__detect_IDOR()
         self.__detect_file_download()
+        self.__detect_DOM_XSS()
     
 
     def __set_target(self):

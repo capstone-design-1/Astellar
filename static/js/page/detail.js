@@ -291,6 +291,10 @@ function setAttackVector(data){
 
     selector.innerHTML += template;
     prev_attack_vector = data;
+
+    const bgm = new Audio("/alert.mp3");
+    bgm.volume = 0.2;
+    bgm.play();
 }
 
 

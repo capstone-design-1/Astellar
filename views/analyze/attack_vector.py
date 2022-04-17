@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote
 import re
 import datetime
 import os
@@ -266,6 +266,8 @@ class AttackVector:
 
         else: return
 
+        for _ in range(5):
+            query = unquote(query)
 
         if "Content-Type" in self.packet.response["header"].keys() and self.packet.response["header"]["Content-Type"].find("application/json") != -1:
             regex_result = re.search(regex, query)

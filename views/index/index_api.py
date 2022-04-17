@@ -145,16 +145,16 @@ def createTarget():
             "message" : "./assets/proxify 파일 실행 권한이 없습니다."
         }
 
-    if multiprocess != None:
-        killProxify()
-        multiprocess.terminate()
+    # if multiprocess != None:
+    #     killProxify()
+    #     multiprocess.terminate()
 
-    multiprocess = multiprocessing.Process(name="proxify", target=startProxify, args=(os.path.join(save_dir_path, target_name), ))
-    multiprocess.start()
+    # multiprocess = multiprocessing.Process(name="proxify", target=startProxify, args=(os.path.join(save_dir_path, target_name), ))
+    # multiprocess.start()
     
     return {
         "result" : "success",
-        "message" : "성공적으로 생성되었습니다. 0.0.0.0:8888 로 listening 상태 입니다."
+        "message" : "성공적으로 생성되었습니다"
     }
 
 @bp.route("/start", methods=["GET"])

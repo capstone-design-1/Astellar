@@ -145,5 +145,12 @@ class Packet:
         
         return return_raw
     
-    def responseToRawData(self) -> str:
-        return json.dumps(self.response)
+    def getResponseToRawData(self) -> str:
+        return_raw = f"{self.response['http_protocol']} {self.response['status_code']} {self.response['reason']}"
+
+        for header in self.response["header"]:
+            return_raw += f"{header}: {self.response['header'][header]}\r\n"
+        
+        return_raw += f"\r\n{self.response['body']}"
+
+        return return_raw

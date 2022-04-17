@@ -3,6 +3,7 @@ import multiprocessing
 import re
 import time
 import requests
+import json
 
 
 from __init__ import socketio
@@ -109,6 +110,7 @@ def getPacketDetail(data):
     if data["target"] in share_memory.keys():
         file_path = data["file_path"]
         file_name = data["file_name"]
+        detect_name = data["detect_name"]
 
         ##  Security Check
         if file_path.find("..") != -1 or file_name.find("..") != -1:
@@ -127,16 +129,21 @@ def getPacketDetail(data):
 
             packet = Packet(packet_data, regex_result, file_name)
 
+        with open("./assets/detail.json") as file_data:
+            json_data = json.load(file_data)
 
-        socketio.emit("receive", {
-            "target" : data["target"],
-            "data" : {
-                "modal" : {
-                    "request" : packet.request,
-                    "response" : packet.response
-                }
-            }
-        }, room = request.sid)
+            if detect_name in json_data.keys():
+                socketio.emit("receive", {
+                    "target" : data["target"],
+                    "data" : {
+                        "modal" : {
+                            "request" : packet.request,
+                            "response" : packet.response,
+                            "detail" : json_data[detect_name],
+                            "reflect_data" : data["reflect_data"]
+                        }
+                    }
+                }, room = request.sid)
 
 
 @socketio.on("get_cve")

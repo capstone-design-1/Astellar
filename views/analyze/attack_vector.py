@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote
 import re
 import datetime
 import os
@@ -30,7 +30,8 @@ class AttackVector:
         self.__detect_S3_bucket()
         self.__detect_IDOR()
         self.__detect_file_download()
-    
+        self.__detect_DOM_XSS()
+        self.__detect_JWT()
 
     def __set_target(self):
         host_info = self.file_name.split("-")[0]
@@ -101,7 +102,7 @@ class AttackVector:
             "url" : self.target_host + self.packet.request["url"],
             "body" : self.packet.request["body"],
             "vuln_parameter" : flag,
-            "risk" : "high",
+            "risk" : "medium",
             "file_name" : self.file_name,
             "reference" : "",
             "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
@@ -266,6 +267,8 @@ class AttackVector:
 
         else: return
 
+        for _ in range(5):
+            query = unquote(query)
 
         if "Content-Type" in self.packet.response["header"].keys() and self.packet.response["header"]["Content-Type"].find("application/json") != -1:
             regex_result = re.search(regex, query)
@@ -276,7 +279,7 @@ class AttackVector:
                     "url" : self.target_host + self.packet.request["url"],
                     "body" : query,
                     "vuln_parameter" : "",
-                    "risk" : "medium",
+                    "risk" : "high",
                     "file_name" : self.file_name,
                     "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery",
                     "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
@@ -298,7 +301,7 @@ class AttackVector:
                         "url" : self.target_host + self.packet.request["url"],
                         "body" : "",
                         "vuln_parameter" : data[0],
-                        "risk" : "medium",
+                        "risk" : "high",
                         "file_name" : self.file_name,
                         "reference" : "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery",
                         "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
@@ -391,15 +394,11 @@ class AttackVector:
             return
 
         url_parse = urlparse(self.packet.request["url"])
-        if url_parse.path in self.idor_url_check:
-            return
-        
         filter_url = ["css", "js", "png", "jpg", "jpeg", "gif", "svg", "scss"]
+
         for filter in filter_url:
             if url_parse.path.split(".")[::-1][0].lower() == filter:
                 return
-
-        self.idor_url_check.append(urlparse(self.packet.request["url"]).path)
 
         ##  파라미터가 있는 경우
         if len(url_parse.query) != 0:
@@ -456,7 +455,15 @@ class AttackVector:
                         print("[Debug] JSON parse Error: ", self.file_name)
                         return
                     
-                    json_all_keys = self.__get_json_all_keys(json_data)
+                    json_all_keys = list()
+                    if isinstance(json_data, list):
+                        for data in json_data:
+                            json_all_keys.extend(self.__get_json_all_keys(data))
+                    elif isinstance(json_data, dict):
+                        json_all_keys = self.__get_json_all_keys(json_data)
+                    else:
+                        return
+
                     for compare in json_all_keys:
                         for idor_param in idor_param_list:
                             if idor_param in compare:
@@ -473,7 +480,6 @@ class AttackVector:
                                     "file_path" : self.file_path
                                 })
 
-
                 else:
                     print("[Debug] Content-Type: ", self.packet.request["header"]["Content-Type"], self.file_name)
                     return
@@ -483,45 +489,51 @@ class AttackVector:
         elif self.packet.request["method"] == "GET":
 
             ##  /user/123 등의 이러한 url path 형태를 탐지
-            regex_url = "\/([\/a-zA-Z._-])+\/[0-9]+"
+            regex_url = "\/([\/a-zA-Z0-9%._-])+\/[0-9]+"
             regex_result = re.search(regex_url, url_parse.path)
             if regex_result == None:
                 return
             
             ##  탐지된 url path에서 숫자 위치 찾기
-            regex_digit = "[\d]+"
+            regex_digit = "\/[\d]+"
             regex_result = re.search(regex_digit, url_parse.path)
             if regex_result == None:
                 return
             
             ##  위에서 얻은 정보로 url path에서 숫자만 가져오기
             try:
-                match_digit = int(url_parse.path[regex_result.span()[0] : regex_result.span()[1]])
+                match_digit = int(url_parse.path[regex_result.span()[0]+1 : regex_result.span()[1]])
             except ValueError as e:
                 print("[Debug] 예외 발생 ", str(e))
                 return
             
             ##  IDOR 취약점 테스트를 위해 추출한 숫자 값을 +-1(상황에 따라 다름)
             tmp_digit = []
-            for _ in range(2):
+            if match_digit == 0:
+                tmp_digit.append(match_digit + 1)
+                tmp_digit.append(match_digit + 2)
+            else:
+                tmp_digit.append(match_digit + 1)
+                tmp_digit.append(match_digit - 1)
+            
+            ## TODO
+            ## IDOR 요청 보내기 전, 검증 절차가 애매함.
+            ## 예를 들어, 
 
-                if match_digit == 0:
-                    tmp_digit.append(match_digit + 1)
-                    tmp_digit.append(match_digit + 2)
-                else:
-                    tmp_digit.append(match_digit + 1)
-                    tmp_digit.append(match_digit - 1)
-
+            ##  IDOR 테스트 요청을 보내기 전에, 검증
+            if url_parse.path[ : regex_result.span()[0] + 1] in self.idor_url_check:
+                return
 
             ##  변조된 url path로 요청 보내기
             status_code = []
+            self.idor_url_check.append(url_parse.path[ : regex_result.span()[0] + 1])
             for digit in tmp_digit:
-                change_path = url_parse.path[ : regex_result.span()[0]] + str(digit) + url_parse.path[regex_result.span()[1] : ]
+                change_path = url_parse.path[ : regex_result.span()[0] + 1] + str(digit) + url_parse.path[regex_result.span()[1] : ]
                 raw_request = self.packet.getRequestToRawData().replace(url_parse.path, self.target_host + change_path)
 
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 parse = urlparse(self.target_host)
-                print("[Debug] IDOR sending: " + self.target_host)
+                print("[Debug] IDOR sending: " + self.target_host + change_path)
                 if parse.scheme == "https":
                     context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
                     context.verify_mode = ssl.CERT_NONE
@@ -553,7 +565,7 @@ class AttackVector:
         if not "Content-Disposition" in self.packet.response["header"].keys():
             return
         
-        if "filename=" in self.packet.response["header"]["Content-Disposition"]:
+        if "attachment; filename=" in self.packet.response["header"]["Content-Disposition"]:
             self.__set_result({
                 "detect_name" : "File Download",
                 "method" : self.packet.request["method"],
@@ -566,6 +578,49 @@ class AttackVector:
                 "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
                 "file_path" : self.file_path
             })
+    
+
+    def __detect_JWT(self):
+        url_extension = urlparse(self.packet.request["url"]).path.split(".")[::-1][0]
+        filter_extension = ["css", "js", "png", "jpg", "jpeg", "gif", "svg", "scss"]
+
+        if url_extension in filter_extension:
+            return
+
+        regex_jwt = "ey[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*"
+
+        regex_req_result = re.search(regex_jwt, self.packet.getRequestToRawData())
+        if regex_req_result != None:
+            self.__set_result({
+                "detect_name" : "JSON Web Token",
+                "method" : self.packet.request["method"],
+                "url" : self.target_host + self.packet.request["url"],
+                "body" : "",
+                "vuln_parameter" : "",
+                "risk" : "info",
+                "file_name" : self.file_name,
+                "reference" : "",
+                "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                "file_path" : self.file_path
+            })
+            return
+            
+        regex_res_result = re.search(regex_jwt, self.packet.getResponseToRawData())
+        if regex_res_result != None:
+            self.__set_result({
+                "detect_name" : "JSON Web Token",
+                "method" : self.packet.request["method"],
+                "url" : self.target_host + self.packet.request["url"],
+                "body" : "",
+                "vuln_parameter" : "",
+                "risk" : "info",
+                "file_name" : self.file_name,
+                "reference" : "",
+                "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                "file_path" : self.file_path
+            })
+
+
 
 
     def __set_result(self, data: dict):
@@ -583,6 +638,9 @@ class AttackVector:
 
     def __get_json_all_keys(self, json_data: dict) -> list:
         return_data = list()
+
+        if not isinstance(json_data, dict):
+            return
 
         for key in json_data.keys():
             if isinstance(json_data[key], dict):

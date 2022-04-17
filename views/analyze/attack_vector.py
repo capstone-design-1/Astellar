@@ -399,7 +399,7 @@ class AttackVector:
             if url_parse.path.split(".")[::-1][0].lower() == filter:
                 return
 
-        self.idor_url_check.append(urlparse(self.packet.request["url"]).path)
+        self.idor_url_check.append(url_parse.path)
 
         ##  파라미터가 있는 경우
         if len(url_parse.query) != 0:
@@ -456,7 +456,15 @@ class AttackVector:
                         print("[Debug] JSON parse Error: ", self.file_name)
                         return
                     
-                    json_all_keys = self.__get_json_all_keys(json_data)
+                    json_all_keys = list()
+                    if isinstance(json_data, list):
+                        for data in json_data:
+                            json_all_keys.extend(self.__get_json_all_keys(data))
+                    elif isinstance(json_data, dict):
+                        json_all_keys = self.__get_json_all_keys(json_data)
+                    else:
+                        return
+
                     for compare in json_all_keys:
                         for idor_param in idor_param_list:
                             if idor_param in compare:
@@ -473,7 +481,6 @@ class AttackVector:
                                     "file_path" : self.file_path
                                 })
 
-
                 else:
                     print("[Debug] Content-Type: ", self.packet.request["header"]["Content-Type"], self.file_name)
                     return
@@ -483,34 +490,32 @@ class AttackVector:
         elif self.packet.request["method"] == "GET":
 
             ##  /user/123 등의 이러한 url path 형태를 탐지
-            regex_url = "\/([\/a-zA-Z._-])+\/[0-9]+"
+            regex_url = "\/([\/a-zA-Z0-9%._-])+\/[0-9]+"
             regex_result = re.search(regex_url, url_parse.path)
             if regex_result == None:
                 return
             
             ##  탐지된 url path에서 숫자 위치 찾기
-            regex_digit = "[\d]+"
+            regex_digit = "\/[\d]+"
             regex_result = re.search(regex_digit, url_parse.path)
             if regex_result == None:
                 return
             
             ##  위에서 얻은 정보로 url path에서 숫자만 가져오기
             try:
-                match_digit = int(url_parse.path[regex_result.span()[0] : regex_result.span()[1]])
+                match_digit = int(url_parse.path[regex_result.span()[0]+1 : regex_result.span()[1]])
             except ValueError as e:
                 print("[Debug] 예외 발생 ", str(e))
                 return
             
             ##  IDOR 취약점 테스트를 위해 추출한 숫자 값을 +-1(상황에 따라 다름)
             tmp_digit = []
-            for _ in range(2):
-
-                if match_digit == 0:
-                    tmp_digit.append(match_digit + 1)
-                    tmp_digit.append(match_digit + 2)
-                else:
-                    tmp_digit.append(match_digit + 1)
-                    tmp_digit.append(match_digit - 1)
+            if match_digit == 0:
+                tmp_digit.append(match_digit + 1)
+                tmp_digit.append(match_digit + 2)
+            else:
+                tmp_digit.append(match_digit + 1)
+                tmp_digit.append(match_digit - 1)
 
 
             ##  변조된 url path로 요청 보내기
@@ -521,7 +526,7 @@ class AttackVector:
 
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 parse = urlparse(self.target_host)
-                print("[Debug] IDOR sending: " + self.target_host)
+                print("[Debug] IDOR sending: " + self.target_host + change_path)
                 if parse.scheme == "https":
                     context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
                     context.verify_mode = ssl.CERT_NONE
@@ -553,7 +558,7 @@ class AttackVector:
         if not "Content-Disposition" in self.packet.response["header"].keys():
             return
         
-        if "filename=" in self.packet.response["header"]["Content-Disposition"]:
+        if "attachment; filename=" in self.packet.response["header"]["Content-Disposition"]:
             self.__set_result({
                 "detect_name" : "File Download",
                 "method" : self.packet.request["method"],
@@ -583,6 +588,9 @@ class AttackVector:
 
     def __get_json_all_keys(self, json_data: dict) -> list:
         return_data = list()
+
+        if not isinstance(json_data, dict):
+            return
 
         for key in json_data.keys():
             if isinstance(json_data[key], dict):

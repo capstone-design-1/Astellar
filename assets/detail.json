@@ -117,5 +117,14 @@
             "https://portswigger.net/web-security/cross-site-scripting/cheat-sheet",
             "https://github.com/payloadbox/xss-payload-list"
         ]
+    },
+    "JSON Web Token" : {
+        "description" : "JSON Web Token 값이 탐지 되었습니다. 해당 값을 변조 등 공격 가능 여부를 확인해야 합니다.",
+        "payload" : [
+            
+        ],
+        "reference" : [
+            "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/JSON%20Web%20Token"
+        ]
     }
 }

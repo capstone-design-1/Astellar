@@ -31,7 +31,7 @@ class AttackVector:
         self.__detect_IDOR()
         self.__detect_file_download()
         self.__detect_DOM_XSS()
-    
+        self.__detect_JWT()
 
     def __set_target(self):
         host_info = self.file_name.split("-")[0]
@@ -578,6 +578,49 @@ class AttackVector:
                 "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
                 "file_path" : self.file_path
             })
+    
+
+    def __detect_JWT(self):
+        url_extension = urlparse(self.packet.request["url"]).path.split(".")[::-1][0]
+        filter_extension = ["css", "js", "png", "jpg", "jpeg", "gif", "svg", "scss"]
+
+        if url_extension in filter_extension:
+            return
+
+        regex_jwt = "ey[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*"
+
+        regex_req_result = re.search(regex_jwt, self.packet.getRequestToRawData())
+        if regex_req_result != None:
+            self.__set_result({
+                "detect_name" : "JSON Web Token",
+                "method" : self.packet.request["method"],
+                "url" : self.target_host + self.packet.request["url"],
+                "body" : "",
+                "vuln_parameter" : "",
+                "risk" : "info",
+                "file_name" : self.file_name,
+                "reference" : "",
+                "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                "file_path" : self.file_path
+            })
+            return
+            
+        regex_res_result = re.search(regex_jwt, self.packet.getResponseToRawData())
+        if regex_res_result != None:
+            self.__set_result({
+                "detect_name" : "JSON Web Token",
+                "method" : self.packet.request["method"],
+                "url" : self.target_host + self.packet.request["url"],
+                "body" : "",
+                "vuln_parameter" : "",
+                "risk" : "info",
+                "file_name" : self.file_name,
+                "reference" : "",
+                "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                "file_path" : self.file_path
+            })
+
+
 
 
     def __set_result(self, data: dict):

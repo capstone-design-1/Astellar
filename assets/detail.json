@@ -32,7 +32,8 @@
             "Using gopher://"
         ],
         "reference" : [
-            "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery"
+            "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Request%20Forgery",
+            "https://github.com/cujanovic/SSRF-Testing"
         ]
     },
     "S3 Bucket" : {

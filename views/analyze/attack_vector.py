@@ -391,15 +391,11 @@ class AttackVector:
             return
 
         url_parse = urlparse(self.packet.request["url"])
-        if url_parse.path in self.idor_url_check:
-            return
-        
         filter_url = ["css", "js", "png", "jpg", "jpeg", "gif", "svg", "scss"]
+
         for filter in filter_url:
             if url_parse.path.split(".")[::-1][0].lower() == filter:
                 return
-
-        self.idor_url_check.append(url_parse.path)
 
         ##  파라미터가 있는 경우
         if len(url_parse.query) != 0:
@@ -516,12 +512,20 @@ class AttackVector:
             else:
                 tmp_digit.append(match_digit + 1)
                 tmp_digit.append(match_digit - 1)
+            
+            ## TODO
+            ## IDOR 요청 보내기 전, 검증 절차가 애매함.
+            ## 예를 들어, 
 
+            ##  IDOR 테스트 요청을 보내기 전에, 검증
+            if url_parse.path[ : regex_result.span()[0] + 1] in self.idor_url_check:
+                return
 
             ##  변조된 url path로 요청 보내기
             status_code = []
+            self.idor_url_check.append(url_parse.path[ : regex_result.span()[0] + 1])
             for digit in tmp_digit:
-                change_path = url_parse.path[ : regex_result.span()[0]] + str(digit) + url_parse.path[regex_result.span()[1] : ]
+                change_path = url_parse.path[ : regex_result.span()[0] + 1] + str(digit) + url_parse.path[regex_result.span()[1] : ]
                 raw_request = self.packet.getRequestToRawData().replace(url_parse.path, self.target_host + change_path)
 
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

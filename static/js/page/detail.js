@@ -360,7 +360,10 @@ function setCveDetail(data){
                 cve_name_template += cve_name.replace("{{cve_name}}", data["cve"][detect_name][idx]);
             }
         }
-        cve_name_template += cve_more_name.replace("{{tmp_cve_name}}", tmp_template);
+
+        if(tmp_template.length != 0){
+            cve_name_template += cve_more_name.replace("{{tmp_cve_name}}", tmp_template);
+        }
 
         selector.innerHTML += html.replace("{{cve_list}}", cve_name_template)
                         .replace("{{detect_name}}", detect_name);

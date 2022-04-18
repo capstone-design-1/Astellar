@@ -587,7 +587,7 @@ class AttackVector:
         if url_extension in filter_extension:
             return
 
-        regex_jwt = "ey[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*"
+        regex_jwt = "eyJhb[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*"
 
         regex_req_result = re.search(regex_jwt, self.packet.getRequestToRawData())
         if regex_req_result != None:

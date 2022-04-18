@@ -518,6 +518,37 @@
                 <div class="card">
                   <div class="card-body">
                     <h3 class="card-title">🛡️ Attack Vector</h3>
+                    <div class="nav row">
+                      <div class="col-6">
+                        <li class="nav-item menu-items">
+                          <a class="nav-link" data-toggle="collapse" href="#result-filter" aria-expanded="false" aria-controls="result-filter">
+                            <span class="menu-title text-primary">Detect Filter</span>
+                          </a>
+                          <div class="collapse" id="result-filter">
+                            <div class="row detect_filter">
+                              
+                            </div>
+                          </div>
+                        </li>
+                      </div>
+                      <div class="col-6">
+                        <li class="nav-item menu-items">
+                          <a class="nav-link" data-toggle="collapse" href="#method-filter" aria-expanded="false" aria-controls="result-filter">
+                            <span class="menu-title text-primary">Method Filter</span>
+                          </a>
+                          <div class="collapse" id="method-filter">
+                            <div class="row method_filter">
+                              <div class="col-2">
+                                <input class="method_filter_checkbox" type="checkbox" class="form-check-input" checked value="GET">GET
+                              </div>
+                              <div class="col-2">
+                                <input class="method_filter_checkbox" type="checkbox" class="form-check-input" checked value="POST">POST
+                              </div>
+                            </div>
+                          </div>
+                        </li>
+                      </div>
+                    </div>
                     <div class="table-responsive">
                       <table class="table table-hover attack-vector-result">
                         <thead>

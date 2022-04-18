@@ -1,6 +1,7 @@
-from flask import Blueprint, request, abort, current_app
+from flask import Blueprint, jsonify, request, abort, current_app
 import os
 import requests
+import json
 
 from db.table import *
 
@@ -70,3 +71,16 @@ def getSubdomain():
         "result" : return_data,
         "last_search_time" : last_search_time
     }
+
+@bp.route("/detect_filter", methods=["GET"])
+def detectFilter():
+    return_data = list()
+
+    with open("./assets/detail.json") as json_data:
+        data = json.load(json_data)
+
+    for key in data.keys():
+        return_data.append(key)
+    
+    return jsonify(return_data)
+        

@@ -3,10 +3,17 @@ const socket = io();
 const refresh_btn = document.getElementsByClassName("subdomain-refresh-btn");
 const target_name = document.getElementsByName("target_name")[0].value;
 const monitor_path = document.getElementsByName("monitor_path")[0].value;
+const method_checkbox = document.getElementsByClassName("method_filter_checkbox");
+let detect_filter_list = [];
+let method_filter_list = ["GET", "POST"];
 
 window.onload = function(){
     if(refresh_btn.length != 0){
         refresh_btn[0].addEventListener("click", () => { searchSubdomain(target_name); });
+    }
+
+    for(let method_chk of method_checkbox){
+        method_chk.addEventListener("click", (e) => setMethodFilter(e))
     }
 
     socket.on('connect', function() {
@@ -105,10 +112,33 @@ window.onload = function(){
         }
     }
 
-    socket.emit("get_realtime_data", {"target": target_name});
+    function initDetectFilter(){
+        fetch(`/detail/api/detect_filter`)
+        .then(res => res.json())
+        .then(data => {
+            const selector = document.getElementsByClassName("detect_filter")[0];
+            const html = `<div class="col-4"><input class="detect_filter_checkbox" type="checkbox" class="form-check-input" checked value="{{detect_filter}}">{{detect_filter}}</div>`;
 
+            let template = '';
+            for(let detect_filter of data){
+                template += html.replace(/{{detect_filter}}/g, detect_filter);
+                detect_filter_list.push(detect_filter);
+            }
+
+            selector.innerHTML = template;
+
+            const checkbox_selector = document.getElementsByClassName("detect_filter_checkbox");
+            for(let select of checkbox_selector){
+                select.addEventListener("click", (e) => {setDetectFilter(e)});
+            }
+        })
+    }
+
+    initDetectFilter();
     initSubdomain(target_name);
     initStart(target_name);
+
+    socket.emit("get_realtime_data", {"target": target_name});
 }
 
 function setSubdomain(data){
@@ -219,14 +249,19 @@ function setAttackVectorCount(count){
     selector.innerHTML = count;
 }
 
-function setAttackVector(data){
+function setAttackVector(data, filter=0){
     const selector = document.getElementsByClassName("attack-vector-result")[0].querySelector("tbody");
 
     if(prev_attack_vector.length == 0){
         selector.innerHTML = '';
     }
-    if(prev_attack_vector.length == data.length){
-        return;
+    if(!filter){
+        if(prev_attack_vector.length == data.length){
+            return;
+        }
+    }
+    else{
+        selector.innerHTML = '';
     }
     const risk_info = `<div class="badge badge-outline-primary">Info</div>`;
     const risk_low = `<div class="badge badge-outline-success">Low</div>`;
@@ -244,9 +279,18 @@ function setAttackVector(data){
     let template = ``;
     let count = 0;
     for(const analyze of data){
-        if(prev_attack_vector.length > count){
-            count++;
+        if(detect_filter_list.indexOf(analyze["detect_name"]) == -1){
             continue;
+        }
+        if(method_filter_list.indexOf(analyze["method"]) == -1){
+            continue;
+        }
+        
+        if(!filter){
+            if(prev_attack_vector.length > count){
+                count++;
+                continue;
+            }
         }
 
         let risk = ``;
@@ -490,6 +534,35 @@ function setCveDetail(data){
     }
 }
 
+function setDetectFilter(e){
+    const checkbox = e.target;
+
+    if(checkbox.checked == true){
+        if(detect_filter_list.indexOf(checkbox.value) == -1){
+            detect_filter_list.push(checkbox.value);
+        }
+    }
+    else if(checkbox.checked == false){
+        detect_filter_list = detect_filter_list.filter((element) => element != checkbox.value);
+    }
+
+    setAttackVector(prev_attack_vector, 1);
+}
+
+function setMethodFilter(e){
+    const checkbox = e.target;
+
+    if(checkbox.checked == true){
+        if(method_filter_list.indexOf(checkbox.value) == -1){
+            method_filter_list.push(checkbox.value);
+        }
+    }
+    else if(checkbox.checked == false){
+        method_filter_list = method_filter_list.filter((element) => element != checkbox.value);
+    }
+
+    setAttackVector(prev_attack_vector, 1);
+}
 
 function escapeHTML(data){
     return data.replace(/</g, "&lt;")

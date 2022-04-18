@@ -117,7 +117,7 @@ window.onload = function(){
         .then(res => res.json())
         .then(data => {
             const selector = document.getElementsByClassName("detect_filter")[0];
-            const html = `<div class="col-4"><input class="detect_filter_checkbox" type="checkbox" class="form-check-input" checked value="{{detect_filter}}">{{detect_filter}}</div>`;
+            const html = `<div class="col-4"><input class="detect_filter_checkbox" type="checkbox" class="form-check-input" checked value="{{detect_filter}}"> {{detect_filter}}</div>`;
 
             let template = '';
             for(let detect_filter of data){

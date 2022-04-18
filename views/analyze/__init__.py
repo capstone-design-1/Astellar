@@ -107,7 +107,9 @@ def checkContentType(packet) -> bool:
         "application/zip",
         "video/3gpp",
         "video/3gpp2",
-        "application/x-7z-compressed"
+        "application/x-7z-compressed",
+        "video/mp4",
+        "application/octer-stream"      # file download 관련
     ]
 
     ## response header에 Content-Type 키가 없으면, attack_vector 검사 해야 함.

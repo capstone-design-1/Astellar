@@ -4,6 +4,7 @@ import requests
 import json
 
 from db.table import *
+from views.func import getFolderNames
 
 bp = Blueprint("detail-api", __name__, url_prefix = "/detail/api")
 
@@ -13,6 +14,9 @@ def Setsubdomain():
     
     if target == None:
         abort(400, description = "Parameter 'target' must be needed.")
+
+    if not target in getFolderNames(current_app.config["SAVE_DIR_PATH"]):
+        abort(400, description = f"Not exist {target}")
 
     data = set()
     result = []

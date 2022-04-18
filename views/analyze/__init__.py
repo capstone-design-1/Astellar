@@ -30,6 +30,10 @@ def fileMonitoring(SAVE_DIR_PATH, target_site, share_memory):
             # tmp_count += 1
             # print("Log: " + os.path.join(target_folder, file_name))
 
+            ##  다른 호스트는 검사하지 않기
+            if not target_site in file_name:
+                continue
+
             with open(os.path.join(target_folder, file_name), encoding="utf8", errors='ignore') as data:
                 packet_data = data.read()
                 regex_result = re.search("HTTP\/[0,1,2]{1}.[0,1]{1} \d{3} ", packet_data)

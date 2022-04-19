@@ -157,6 +157,9 @@ def getCve(data):
     CVE_API_KEY = "06c7445b-86a5-4777-bcb3-2398f6163c46"
     api_url = "https://services.nvd.nist.gov/rest/json/cpes/1.0/"
 
+    if not "wappalyzer" in share_memory[data["target"]].keys():
+        return
+        
     wappalyzer = share_memory[data["target"]]["wappalyzer"]
 
     for target in wappalyzer.keys():

@@ -48,6 +48,12 @@ window.onload = function(){
                 case "cve_modal":
                     setCveDetail(data[key]);
                     break;
+                case "ports":
+                    setPortsDetail(data[key])
+                    break;
+                case "error":
+                    alert(data[key]["message"]);
+                    break;
             }
         }
     });
@@ -491,6 +497,19 @@ function setModalDetailInfo(detail, reflect_data){
 
 
 function setCve(){
+    const selector = document.getElementsByClassName("cve-detail")[0];
+    selector.innerHTML = `<div class="col-2">
+                            </div>
+                            <div class="col-8">
+                            <center>
+                                정보를 가져오는 중 입니다.<br>
+                                <div class="lds-ring lds-ring-green">
+                                <div></div>
+                                </div>
+                            </center>
+                            </div>
+                            <div class="col-2">
+                            </div>`;
     socket.emit("get_cve", {
         "target" : target_name
     })
@@ -562,6 +581,28 @@ function setMethodFilter(e){
     }
 
     setAttackVector(prev_attack_vector, 1);
+}
+
+function setPortsEvent(){
+    socket.emit("get_shodan", {"target": target_name});
+}
+
+function setPortsDetail(data){
+    const selector = document.getElementsByClassName("osint-detail")[0];
+    const port_name = `<li>{{port_name}}</li>`;
+    const html = `  <div class="col-6">
+                        <h4 class="text-success"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ports </h4>
+                        <ul class="list-ticked">
+                            {{port_list}}
+                        </ul>
+                    </div>`;
+    
+    let port_template = '';
+    for(let port of data){
+        port_template += port_name.replace("{{port_name}}", port);
+    }
+
+    selector.innerHTML = html.replace("{{port_list}}", port_template);
 }
 
 function escapeHTML(data){

@@ -82,6 +82,38 @@
       </div>
     </div>
 
+    <div class="modal fade" id="osint-detail" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalCenterTitle">💡OSINT</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row osint-detail">
+              <div class="col-2">
+              </div>
+              <div class="col-8">
+                <center>
+                  정보를 가져오는 중 입니다.<br>
+                  <div class="lds-ring lds-ring-green">
+                    <div></div>
+                  </div>
+                </center>
+              </div>
+              <div class="col-2">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <input type="hidden" name="target_name" value="{{return_data['target_name']}}">
     <input type="hidden" name="monitor_path" value="{{return_data['monitor_path']}}">
     <div class="container-scroller">
@@ -492,14 +524,14 @@
                   </div>
                 </div>
               </div>
-              <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
+
+              <div class="col-xl-3 col-sm-6 grid-margin stretch-card" data-toggle="modal" data-target="#osint-detail" onclick='setPortsEvent()'>
                 <div class="card">
                   <div class="card-body">
                     <div class="row">
                       <div class="col-9">
                         <div class="d-flex align-items-center align-self-start">
-                          <h3 class="mb-0">$31.53</h3>
-                          <p class="text-success ml-2 mb-0 font-weight-medium">+3.5%</p>
+                          <h3 class="mb-0">Detail OSINT</h3>
                         </div>
                       </div>
                       <div class="col-3">
@@ -508,7 +540,7 @@
                         </div>
                       </div>
                     </div>
-                    <h6 class="text-muted font-weight-normal">Expense current</h6>
+                    <h6 class="text-muted font-weight-normal">Detect OSINT</h6>
                   </div>
                 </div>
               </div>
@@ -518,6 +550,37 @@
                 <div class="card">
                   <div class="card-body">
                     <h3 class="card-title">🛡️ Attack Vector</h3>
+                    <div class="nav row">
+                      <div class="col-6">
+                        <li class="nav-item menu-items">
+                          <a class="nav-link" data-toggle="collapse" href="#result-filter" aria-expanded="false" aria-controls="result-filter">
+                            <span class="menu-title text-primary">Detect Filter</span>
+                          </a>
+                          <div class="collapse" id="result-filter">
+                            <div class="row detect_filter">
+                              
+                            </div>
+                          </div>
+                        </li>
+                      </div>
+                      <div class="col-6">
+                        <li class="nav-item menu-items">
+                          <a class="nav-link" data-toggle="collapse" href="#method-filter" aria-expanded="false" aria-controls="result-filter">
+                            <span class="menu-title text-primary">Method Filter</span>
+                          </a>
+                          <div class="collapse" id="method-filter">
+                            <div class="row method_filter">
+                              <div class="col-2">
+                                <input class="method_filter_checkbox" type="checkbox" class="form-check-input" checked value="GET"> GET
+                              </div>
+                              <div class="col-2">
+                                <input class="method_filter_checkbox" type="checkbox" class="form-check-input" checked value="POST"> POST
+                              </div>
+                            </div>
+                          </div>
+                        </li>
+                      </div>
+                    </div>
                     <div class="table-responsive">
                       <table class="table table-hover attack-vector-result">
                         <thead>

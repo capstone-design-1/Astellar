@@ -3,10 +3,17 @@ const socket = io();
 const refresh_btn = document.getElementsByClassName("subdomain-refresh-btn");
 const target_name = document.getElementsByName("target_name")[0].value;
 const monitor_path = document.getElementsByName("monitor_path")[0].value;
+const method_checkbox = document.getElementsByClassName("method_filter_checkbox");
+let detect_filter_list = [];
+let method_filter_list = ["GET", "POST"];
 
 window.onload = function(){
     if(refresh_btn.length != 0){
         refresh_btn[0].addEventListener("click", () => { searchSubdomain(target_name); });
+    }
+
+    for(let method_chk of method_checkbox){
+        method_chk.addEventListener("click", (e) => setMethodFilter(e))
     }
 
     socket.on('connect', function() {
@@ -40,6 +47,12 @@ window.onload = function(){
                     break;
                 case "cve_modal":
                     setCveDetail(data[key]);
+                    break;
+                case "ports":
+                    setPortsDetail(data[key])
+                    break;
+                case "error":
+                    alert(data[key]["message"]);
                     break;
             }
         }
@@ -105,10 +118,33 @@ window.onload = function(){
         }
     }
 
-    socket.emit("get_realtime_data", {"target": target_name});
+    function initDetectFilter(){
+        fetch(`/detail/api/detect_filter`)
+        .then(res => res.json())
+        .then(data => {
+            const selector = document.getElementsByClassName("detect_filter")[0];
+            const html = `<div class="col-4"><input class="detect_filter_checkbox" type="checkbox" class="form-check-input" checked value="{{detect_filter}}"> {{detect_filter}}</div>`;
 
+            let template = '';
+            for(let detect_filter of data){
+                template += html.replace(/{{detect_filter}}/g, detect_filter);
+                detect_filter_list.push(detect_filter);
+            }
+
+            selector.innerHTML = template;
+
+            const checkbox_selector = document.getElementsByClassName("detect_filter_checkbox");
+            for(let select of checkbox_selector){
+                select.addEventListener("click", (e) => {setDetectFilter(e)});
+            }
+        })
+    }
+
+    initDetectFilter();
     initSubdomain(target_name);
     initStart(target_name);
+
+    socket.emit("get_realtime_data", {"target": target_name});
 }
 
 function setSubdomain(data){
@@ -219,14 +255,19 @@ function setAttackVectorCount(count){
     selector.innerHTML = count;
 }
 
-function setAttackVector(data){
+function setAttackVector(data, filter=0){
     const selector = document.getElementsByClassName("attack-vector-result")[0].querySelector("tbody");
 
     if(prev_attack_vector.length == 0){
         selector.innerHTML = '';
     }
-    if(prev_attack_vector.length == data.length){
-        return;
+    if(!filter){
+        if(prev_attack_vector.length == data.length){
+            return;
+        }
+    }
+    else{
+        selector.innerHTML = '';
     }
     const risk_info = `<div class="badge badge-outline-primary">Info</div>`;
     const risk_low = `<div class="badge badge-outline-success">Low</div>`;
@@ -244,9 +285,18 @@ function setAttackVector(data){
     let template = ``;
     let count = 0;
     for(const analyze of data){
-        if(prev_attack_vector.length > count){
-            count++;
+        if(detect_filter_list.indexOf(analyze["detect_name"]) == -1){
             continue;
+        }
+        if(method_filter_list.indexOf(analyze["method"]) == -1){
+            continue;
+        }
+        
+        if(!filter){
+            if(prev_attack_vector.length > count){
+                count++;
+                continue;
+            }
         }
 
         let risk = ``;
@@ -447,6 +497,19 @@ function setModalDetailInfo(detail, reflect_data){
 
 
 function setCve(){
+    const selector = document.getElementsByClassName("cve-detail")[0];
+    selector.innerHTML = `<div class="col-2">
+                            </div>
+                            <div class="col-8">
+                            <center>
+                                정보를 가져오는 중 입니다.<br>
+                                <div class="lds-ring lds-ring-green">
+                                <div></div>
+                                </div>
+                            </center>
+                            </div>
+                            <div class="col-2">
+                            </div>`;
     socket.emit("get_cve", {
         "target" : target_name
     })
@@ -490,6 +553,57 @@ function setCveDetail(data){
     }
 }
 
+function setDetectFilter(e){
+    const checkbox = e.target;
+
+    if(checkbox.checked == true){
+        if(detect_filter_list.indexOf(checkbox.value) == -1){
+            detect_filter_list.push(checkbox.value);
+        }
+    }
+    else if(checkbox.checked == false){
+        detect_filter_list = detect_filter_list.filter((element) => element != checkbox.value);
+    }
+
+    setAttackVector(prev_attack_vector, 1);
+}
+
+function setMethodFilter(e){
+    const checkbox = e.target;
+
+    if(checkbox.checked == true){
+        if(method_filter_list.indexOf(checkbox.value) == -1){
+            method_filter_list.push(checkbox.value);
+        }
+    }
+    else if(checkbox.checked == false){
+        method_filter_list = method_filter_list.filter((element) => element != checkbox.value);
+    }
+
+    setAttackVector(prev_attack_vector, 1);
+}
+
+function setPortsEvent(){
+    socket.emit("get_shodan", {"target": target_name});
+}
+
+function setPortsDetail(data){
+    const selector = document.getElementsByClassName("osint-detail")[0];
+    const port_name = `<li>{{port_name}}</li>`;
+    const html = `  <div class="col-6">
+                        <h4 class="text-success"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ports </h4>
+                        <ul class="list-ticked">
+                            {{port_list}}
+                        </ul>
+                    </div>`;
+    
+    let port_template = '';
+    for(let port of data){
+        port_template += port_name.replace("{{port_name}}", port);
+    }
+
+    selector.innerHTML = html.replace("{{port_list}}", port_template);
+}
 
 function escapeHTML(data){
     return data.replace(/</g, "&lt;")

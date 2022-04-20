@@ -1,8 +1,10 @@
-from flask import Blueprint, request, abort, current_app
+from flask import Blueprint, jsonify, request, abort, current_app
 import os
 import requests
+import json
 
 from db.table import *
+from views.func import getFolderNames
 
 bp = Blueprint("detail-api", __name__, url_prefix = "/detail/api")
 
@@ -12,6 +14,9 @@ def Setsubdomain():
     
     if target == None:
         abort(400, description = "Parameter 'target' must be needed.")
+
+    if not target in getFolderNames(current_app.config["SAVE_DIR_PATH"]):
+        abort(400, description = f"Not exist {target}")
 
     data = set()
     result = []
@@ -70,3 +75,16 @@ def getSubdomain():
         "result" : return_data,
         "last_search_time" : last_search_time
     }
+
+@bp.route("/detect_filter", methods=["GET"])
+def detectFilter():
+    return_data = list()
+
+    with open("./assets/detail.json") as json_data:
+        data = json.load(json_data)
+
+    for key in data.keys():
+        return_data.append(key)
+    
+    return jsonify(return_data)
+        

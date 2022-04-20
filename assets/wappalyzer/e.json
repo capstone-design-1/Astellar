@@ -1090,7 +1090,7 @@
       18,
       22
     ],
-    "cpe": "cpe:/a:expressjs:express",
+    "cpe": "cpe:2.3:a:expressjs:express:-:*:*:*:*:*:*:*",
     "description": "Express is a web application framework for Node.js, released as free and open-source software under the MIT License. It is designed for building web applications and APIs.",
     "headers": {
       "X-Powered-By": "^Express$"
@@ -1108,7 +1108,7 @@
       "exp_last_activity": "",
       "exp_tracker": ""
     },
-    "cpe": "cpe:/a:ellislab:expressionengine",
+    "cpe": "cpe:2.3:a:ellislab:expressionengine:-:*:*:*:*:*:*:*",
     "description": "ExpressionEngine is a free and open-source CMS.",
     "icon": "ExpressionEngine.svg",
     "implies": "PHP",

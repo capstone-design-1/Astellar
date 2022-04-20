@@ -59,3 +59,7 @@
     font-size: 15px;
   src: url("../fonts/Rubik/Rubik-Bold.ttf");
 }
+
+.table-wappalyzer{
+    white-space: break-spaces !important;
+}

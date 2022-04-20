@@ -791,7 +791,7 @@
     "cats": [
       33
     ],
-    "cpe": "cpe:/a:openssl:openssl",
+    "cpe": "cpe:2.3:a:openssl:openssl:-:*:*:*:*:*:*:*",
     "description": "OpenSSL is a software library for applications that secure communications over computer networks against eavesdropping or need to identify the party at the other end.",
     "headers": {
       "Server": "OpenSSL(?:/([\\d.]+[a-z]?))?\\;version:\\1"
@@ -1065,7 +1065,7 @@
     "cats": [
       22
     ],
-    "cpe": "cpe:/a:oracle:http_server",
+    "cpe": "cpe:2.3:a:oracle:http_server:-:*:*:*:*:*:*:*",
     "headers": {
       "Server": "Oracle-HTTP-Server(?:/([\\d.]+))?\\;version:\\1"
     },
@@ -1115,7 +1115,7 @@
     "cats": [
       23
     ],
-    "cpe": "cpe:/a:oracle:web_cache",
+    "cpe": "cpe:2.3:a:oracle:web_cache:-:*:*:*:*:*:*:*",
     "description": "Oracle Web Cache is a browser and content management server, which improves the performance of web sites.",
     "headers": {
       "Server": "Oracle(?:AS)?[- ]Web[- ]Cache(?:[- /]([\\da-z./]+))?\\;version:\\1"

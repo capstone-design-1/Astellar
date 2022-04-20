@@ -90,7 +90,7 @@ class Wappalyzer:
         for tech_cookie in tech_info.keys():
             for cookie in request_cookie:
                 if tech_cookie == cookie.split("=")[0]:
-                    self.setResult(category, info)
+                    self.setResult(category, info, request["header"]["Host"])
     
 
     def detectHeader(self, request: dict, response: dict, tech_info: dict, category: list, info: str):
@@ -102,14 +102,14 @@ class Wappalyzer:
                 regex_result = re.search(p, request["header"][header], re.I)
 
                 if regex_result != None:
-                    self.setResult(category, request["header"][header][regex_result.span()[0] : ])
+                    self.setResult(category, request["header"][header][regex_result.span()[0] : ], request["header"]["Host"])
 
             if header in response["header"].keys():
                 p = pattern.split("\\;")[0]
                 regex_result = re.search(p, response["header"][header].lower(), re.I)
                 
                 if regex_result != None:
-                    self.setResult(category, response["header"][header][regex_result.span()[0] : ])
+                    self.setResult(category, response["header"][header][regex_result.span()[0] : ], request["header"]["Host"])
 
     ## TODO
     ## 버전 구하는 기능
@@ -117,7 +117,7 @@ class Wappalyzer:
         pass
 
 
-    def setResult(self, category: list, info: str):
+    def setResult(self, category: list, info: str, target_host: str):
         priority = dict()
 
         for cat in category:
@@ -126,9 +126,12 @@ class Wappalyzer:
         ##  value를 기준으로 오름차순 정렬
         sorted_dict = sorted(priority.items(), key = lambda item: item[1])
         name = self.category[sorted_dict[0][0]]["name"]
+    
+        if not target_host in self.wappalyer_result.keys():
+            self.wappalyer_result[target_host] = dict()
 
-        if not name in self.wappalyer_result.keys():
-            self.wappalyer_result[name] = dict()
+        if not name in self.wappalyer_result[target_host].keys():
+            self.wappalyer_result[target_host][name] = dict()
         
         # if not info in self.tmp_tech_result:
         #     self.tmp_tech_result.append(info)
@@ -137,9 +140,9 @@ class Wappalyzer:
         if len(data) > 2:
             print("[!] 예외 상황 발생 ", info)
         
-        if not data[0] in self.wappalyer_result[name].keys():
-            self.wappalyer_result[name][data[0]] = ""
+        if not data[0] in self.wappalyer_result[target_host][name].keys():
+            self.wappalyer_result[target_host][name][data[0]] = ""
 
         ##  버전 정보 입력
         if len(data) == 2:
-            self.wappalyer_result[name][data[0]] = data[1]
+            self.wappalyer_result[target_host][name][data[0]] = data[1]

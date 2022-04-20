@@ -4,6 +4,9 @@ import re
 import time
 import requests
 import json
+import shodan
+import socket
+import os
 
 
 from __init__ import socketio
@@ -157,6 +160,9 @@ def getCve(data):
     CVE_API_KEY = "06c7445b-86a5-4777-bcb3-2398f6163c46"
     api_url = "https://services.nvd.nist.gov/rest/json/cpes/1.0/"
 
+    if not "wappalyzer" in share_memory[data["target"]].keys():
+        return
+        
     wappalyzer = share_memory[data["target"]]["wappalyzer"]
 
     for target in wappalyzer.keys():
@@ -193,3 +199,54 @@ def getCve(data):
                 }
             }
         }, room = request.sid)
+
+
+@socketio.on("get_shodan")
+def getShodan(data):
+    if not data["target"] in share_memory.keys():
+        return
+    
+    try:
+        SHODAN_API_KEY = os.environ["SHODAN_API"]
+    except:
+        socketio.emit("receive", {
+            "data": {
+                "error" : {
+                    "message" : "shodan API 키가 없습니다. 환경변수 SHODAN_API 를 등록해 주세요."
+                }
+            }
+        })
+        return
+
+    try:
+        domain_to_ip = socket.gethostbyname(data["target"])
+        
+        ##  IP 값인지 확인
+        socket.inet_aton(domain_to_ip)
+    except:
+        socketio.emit("receive", {
+            "data": {
+                "error" : {
+                    "message" : "도메인을 IP주소로 변환하는 과정에서 에러가 발생했습니다."
+                }
+            }
+        })
+        return
+    
+
+    api = shodan.Shodan(SHODAN_API_KEY)
+    results = api.host(domain_to_ip)
+
+    if not "ports" in results.keys():
+        socketio.emit("receive", {
+            "data": {
+                "ports" : []
+            }
+        })
+        return
+
+    socketio.emit("receive", {
+        "data": {
+            "ports" : results["ports"]
+        }
+    })

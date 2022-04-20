@@ -402,26 +402,46 @@ class AttackVector:
 
         ##  파라미터가 있는 경우
         if len(url_parse.query) != 0:
-            idor_param_list = ["account", "comment", "edit", "email", "id", "no", "user"]
+            idor_param_list = ["account", "comment", "edit", "email", "id", "no", "user", "Id"]
 
             if self.packet.request["method"] == "GET":
                 for query in url_parse.query.split("&"):
-                    data = query.split("=")[0].lower()
+                    data = query.split("=")
 
                     for idor_param in idor_param_list:
-                        if data in idor_param:
+                        if data[0].lower() in idor_param:
                             self.__set_result({
                                 "detect_name" : "IDOR (not req)",
                                 "method" : self.packet.request["method"],
                                 "url" : self.target_host + self.packet.request["url"],
                                 "body" : "",
-                                "vuln_parameter" : data,
+                                "vuln_parameter" : data[0].lower(),
                                 "risk" : "info",
                                 "file_name" : self.file_name,
                                 "reference" : "",
                                 "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
                                 "file_path" : self.file_path
                             })
+                    
+                    if len(data) == 2:
+                        try:
+                            int(data[1])
+                            self.__set_result({
+                                "detect_name" : "IDOR (not req)",
+                                "method" : self.packet.request["method"],
+                                "url" : self.target_host + self.packet.request["url"],
+                                "body" : "",
+                                "vuln_parameter" : data[0].lower(),
+                                "risk" : "info",
+                                "file_name" : self.file_name,
+                                "reference" : "",
+                                "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                                "file_path" : self.file_path
+                            })
+                        except:
+                            pass
+
+                    
 
             elif self.packet.request["method"] == "POST":
                 if not "Content-Type" in self.packet.request["header"].keys():
@@ -587,7 +607,7 @@ class AttackVector:
         if url_extension in filter_extension:
             return
 
-        regex_jwt = "ey[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*"
+        regex_jwt = "eyJhb[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*"
 
         regex_req_result = re.search(regex_jwt, self.packet.getRequestToRawData())
         if regex_req_result != None:

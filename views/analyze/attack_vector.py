@@ -236,6 +236,12 @@ class AttackVector:
     
 
     def __detect_CORS(self):
+        filter_content_types = ["css", "font", "otf"]
+        if "Content-Type" in self.packet.response["header"].keys():
+            for filter_content_type in filter_content_types:
+                if filter_content_type in self.packet.response["header"]["Content-Type"].lower():
+                    return
+
         for key in ["Access-Control-Allow-Origin", "Access-Control-Allow-Credentials"]:
             if key in self.packet.response["header"].keys():
                 self.__set_result({

@@ -194,7 +194,7 @@ function setWappalyzer(data){
     const selector = document.getElementsByClassName("wappalyer-result")[0];
     const detect_name_html = `<th class='table-wappalyzer'>{{name}}</th>`;
     const detect_detail_html = `<td>{{name}}</td>`;
-    const html = `  <div class="col-sm-4 grid-margin">
+    const html = `  <div class="col grid-margin">
                         <div class="card">
                             <div class="card-body">
                                 <h3 class="card-title mb-1">🗺️ Server Info</h3>

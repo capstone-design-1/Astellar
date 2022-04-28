@@ -13,6 +13,7 @@ from __init__ import socketio
 from views.func import getFolderNames
 from views.analyze import fileMonitoring
 from views.analyze.packet import Packet
+from views.func import killProxify
 
 bp = Blueprint("detail", __name__, url_prefix = "/detail")
 
@@ -82,12 +83,15 @@ def disconnect():
     for target in check.keys():
         for sid in check[target]["sid"]:
             if sid == request.sid:
+                print("[Debug] Client Disconnect")
                 check[target]["sid"].remove(sid)
                 loop_tmp = 1
                 break
         
         if loop_tmp:
             if len(check[target]["sid"]) == 0:
+                print("[Debug] Proxify terminate")
+                killProxify()
                 check[target]["process"].terminate()
                 check.pop(target)
             break

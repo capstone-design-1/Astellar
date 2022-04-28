@@ -2,10 +2,10 @@ from flask import Blueprint, abort, jsonify, request, current_app
 import multiprocessing
 import re
 import os
-import psutil
 
 from db.table import TodoTable
 from views.func import getFolderNames
+from views.func import killProxify
 
 
 bp = Blueprint("todo-api", __name__, url_prefix = "/api")
@@ -216,9 +216,3 @@ def initProxify():
 def startProxify(log_path):
     port = 8888
     os.system(f'./assets/proxify -http-addr "0.0.0.0:{port}" -o {log_path}')
-
-
-def killProxify():
-    for proc in psutil.process_iter():
-        if proc.name() == "proxify":
-            proc.kill()

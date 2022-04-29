@@ -14,6 +14,16 @@ class autoBot:
         self.visited = defaultdict(list)
         self.file_extension = ("pdf", "jpeg", "jpg", "png", "hwp", "gif", "doc")
 
+
+        PROXY = "localhost:8888"
+
+        webdriver.DesiredCapabilities.CHROME['proxy'] = {
+            "httpProxy": PROXY,
+            "ftpProxy": PROXY,
+            "sslProxy": PROXY,
+            "proxyType": "MANUAL"
+        }
+
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument('ignore-certificate-errors')
         chrome_options.add_argument('--headless')
@@ -24,17 +34,6 @@ class autoBot:
 
         self.driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
         self.driver.implicitly_wait(3)
-
-    def connect_proxy():
-
-        PROXY = "localhost:8888"
-
-        webdriver.DesiredCapabilities.CHROME['proxy'] = {
-            "httpProxy": PROXY,
-            "ftpProxy": PROXY,
-            "sslProxy": PROXY,
-            "proxyType": "MANUAL"
-        }
 
     def connect_webdriver(self, site):
 
@@ -82,7 +81,7 @@ class autoBot:
         cnt = 0
         while self.queue :
             url, depth = self.queue.popleft()
-            if depth > 1:
+            if depth > 2:
                 continue
             self.search(url, depth)
         return

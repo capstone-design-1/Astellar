@@ -103,11 +103,23 @@ def getResultRealTime(data):
     if data["target"] in share_memory.keys():
 
         while True:
-            socketio.emit("receive", { 
-                "target" : data["target"],
-                "data" : share_memory[data["target"]]
-            }, room = request.sid)
-            
+            try:
+                socketio.emit("receive", { 
+                    "target" : data["target"],
+                    "data" : {
+                        "wappalyzer" : share_memory[data["target"]]["wappalyzer"],
+                        "attack_vector" : share_memory[data["target"]]["attack_vector"],
+                        "packet_count" : share_memory[data["target"]]["packet_count"]
+                    }
+                }, room = request.sid)
+            except:
+                socketio.emit("receive", { 
+                    "target" : data["target"],
+                    "data" : {
+                        "packet_count" : 0
+                    }
+                }, room = request.sid)
+
             time.sleep(2)
 
 @socketio.on("get_packet_detail")
@@ -254,3 +266,26 @@ def getShodan(data):
             "ports" : results["ports"]
         }
     })
+
+
+@socketio.on("get_url_tree")
+def get_url_tree(data):
+    if not data["target"] in share_memory.keys():
+        return
+
+    while True:
+        if "url_tree" in share_memory[data["target"]].keys():
+            socketio.emit("receive", {
+                "data" : {
+                    "url_tree" : share_memory[data["target"]]["url_tree"]
+                }
+            }, room = request.sid)
+
+        else:
+            socketio.emit("receive", {
+                "data" : {
+                    "url_tree" : {}
+                }
+            }, room = request.sid)
+        
+        time.sleep(2)

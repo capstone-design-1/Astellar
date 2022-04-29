@@ -379,7 +379,7 @@ class AttackVector:
             if len(data) != 2:
                 return
 
-            regex_result = re.search(regex, data[1])
+            regex_result = re.search(regex, unquote(data[1]))
             if regex_result != None:
                 self.__set_result({
                     "detect_name" : "Open Redirect",

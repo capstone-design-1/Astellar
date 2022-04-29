@@ -5,12 +5,13 @@ import re
 from views.func import getFileNames
 from views.analyze.packet import Packet
 from views.analyze.analyze import Analyze
-
+from views.analyze.url_tree import UrlTree
 
 def fileMonitoring(SAVE_DIR_PATH, target_site, share_memory):
     prev_file_list = set()
     prev_file_count = len(prev_file_list)
     analyze_obj = Analyze(target_site)
+    url_tree_obj = UrlTree()
     target_folder = SAVE_DIR_PATH + target_site
 
     while True:
@@ -45,6 +46,7 @@ def fileMonitoring(SAVE_DIR_PATH, target_site, share_memory):
                 packet = Packet(packet_data, regex_result, file_name)
                 if checkContentType(packet):
                     analyze_obj.start(packet, file_name, target_folder)
+                    url_tree_obj.start(f"http://{packet.request['header']['Host']}{packet.request['url']}", file_name)
 
             # if tmp_count % 100 == 0:
             #     share_memory[target_site] = {
@@ -56,7 +58,8 @@ def fileMonitoring(SAVE_DIR_PATH, target_site, share_memory):
         share_memory[target_site] = {
             "wappalyzer" : analyze_obj.wappalyzer_obj.wappalyer_result,
             "attack_vector" : analyze_obj.attack_vector_obj.attack_vector_result,
-            "packet_count" : prev_file_count
+            "packet_count" : prev_file_count,
+            "url_tree" : url_tree_obj.getObjectToDict("ecampus.changwon.ac.kr")
         }
 
 

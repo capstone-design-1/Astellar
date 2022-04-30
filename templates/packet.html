@@ -85,9 +85,7 @@
             </button>
             <ul class="navbar-nav w-100">
               <li class="nav-item w-100">
-                <form class="nav-link mt-2 mt-md-0 d-none d-lg-flex search">
-                  <input type="text" class="form-control" placeholder="Search products">
-                </form>
+                  <input type="text" class="form-control" placeholder="Search packet detail" onkeyup='if(window.event.keyCode==13){searchPacket(this.value)}'>
               </li>
             </ul>
             <ul class="navbar-nav navbar-nav-right">
@@ -242,8 +240,12 @@
               <div class="col-8 grid-margin stretch-card">
                 <div class="card">
                   <div class="card-body">
-                    <h3 class="card-title">🛡️ Attack Vector</h3>
-                    
+                    <h3 class="card-title">🛡️ Packet Info</h3>
+                    <div class="row">
+                      <div class="col packet-detail">
+
+                      </div>
+                    </div>
                 </div>
               </div>
               <div class="col-6 grid-margin stretch-card">
@@ -257,56 +259,7 @@
                       <div class="col-12">
                         <div class="preview-list">
                           <ul class="tree url-tree-result">
-                            <li>
-                              <input type="checkbox" id="asdf">
-                              <label for="asdf">ROOT</label>
-                              <ul>
-                                <li>
-                                  <input type="checkbox" id="node1">
-                                  <label for="node1" class="lastTree">node1</label>
-                                </li>
-                                <li>
-                                  <input type="checkbox" id="node2">
-                                  <label for="node2">node2</label>
-                                  <ul>
-                                    <li>
-                                      <input type="checkbox" id="node21">
-                                      <label for="node21" class="lastTree">node21</label>
-                                    </li>
-                                  </ul>
-                                <li>
-                                  <input type="checkbox" id="node3">
-                                  <label for="node3">node3</label>
-                                  <ul>
-                                    <li>
-                                      <input type="checkbox" id="node31">
-                                      <label for="node31" class="lastTree">node31</label>
-                                    </li>
-                                    <li>
-                                      <input type="checkbox" id="node32">
-                                      <label for="node32">node32</label>
-                                      <ul>
-                                        <li>
-                                          <input type="checkbox" id="node321">
-                                          <label for="node321" class="lastTree">node321</label>
-                                        </li>
-                                        <li>
-                                          <input type="checkbox" id="node322">
-                                          <label for="node322" class="lastTree">node322</label>
-                                        </li>
-                                        <li>
-                                          <input type="checkbox" id="node323">
-                                          <label for="node323" class="lastTree">node323</label>
-                                        </li>
-                                      </ul>
-                                    <li>
-                                      <input type="checkbox" id="node33">
-                                      <label for="node33" class="lastTree">node33</label>
-                                    </li>
-                                  </ul>
-                                </li>
-                              </ul>
-                            </li>
+                            
                           </ul>
                           
                         </div>

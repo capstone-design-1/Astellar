@@ -35,12 +35,13 @@ class UrlTree:
         self.url_tree = dict()
     
 
-    def start(self, url: str, file_name: str):
+    def start(self, url: str, file_name: str, target: str):
         """ Url tree 시작
 
         Args:
             - url: request packet에서 host를 포함한 url, ex) https://naver.com/path?test=1
             - file_name: 현재 packet 파일의 절대 경로, ex) /tmp/data/naver.com/123asdf.txt
+            - target: 사용자가 지정한 타겟 host
         """
 
         url_parse = urlparse(url)
@@ -50,42 +51,53 @@ class UrlTree:
             print(url_parse)
             raise
     
-        self.__check_host(url_parse.netloc)
+        self.__check_host(url_parse.netloc, target)
         if len(url_parse.query) == 0:
-            self.__set_url_tree(url_parse.netloc, url_parse.path, "/", file_name, self.url_tree[url_parse.netloc])
+            self.__set_url_tree(url_parse.netloc, url_parse.path, "/", file_name, self.url_tree[target][url_parse.netloc])
         else:
-            self.__set_url_tree(url_parse.netloc, url_parse.path, url_parse.query, file_name, self.url_tree[url_parse.netloc])
+            self.__set_url_tree(url_parse.netloc, url_parse.path, url_parse.query, file_name, self.url_tree[target][url_parse.netloc])
 
     
 
-    def __check_host(self, host: str):
+    def __check_host(self, host: str, target):
         """ Url tree에 host 존재 여부 확인
 
         Args:
             - host: packet의 host, ex) naver.com
+            - target: 사용자가 지정한 타겟 host
         
         """
 
-        if not host in self.url_tree.keys():
-            self.url_tree[host] = list()
-            self.url_tree[host].append(UrlNode("Folder" , "/"))
+        if not target in self.url_tree.keys():
+            self.url_tree[target] = dict()
+        
+        if not host in self.url_tree[target].keys():
+            self.url_tree[target][host] = list()
+            self.url_tree[target][host].append(UrlNode("Folder" , "/"))
         
     
-    def getObjectToDict(self, host, tree = -1) -> list:
-        return_data = list()
+    def getObjectToDict(self, target) -> list:
+        return_data = dict()
 
-        if isinstance(tree, int):
-            tree = self.url_tree[host]
+        for host in self.url_tree[target].keys():
+            return_data[host] = self.__getObjectToDict(host, self.url_tree[target][host])
+        
+        return return_data
+
+
+    def __getObjectToDict(self, host, tree) -> list:
+        return_data = list()
 
         for data in tree:
             return_data.append({
                 "type" : data.type,
                 "path" : data.get_path(),
                 "packet" : data.packet,
-                "sub_path" : self.getObjectToDict(host, data.sub_path)
+                "sub_path" : self.__getObjectToDict(host, data.sub_path)
             })
         
         return return_data
+
 
     def __set_url_tree(self, host: str, path: str, params: str, file_name: str, url_tree):
         """ Url tree 데이터 넣기

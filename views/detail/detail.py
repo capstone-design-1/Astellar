@@ -7,6 +7,7 @@ import json
 import shodan
 import socket
 import os
+import subprocess
 
 
 from __init__ import socketio
@@ -14,6 +15,7 @@ from views.func import getFolderNames
 from views.analyze import fileMonitoring
 from views.analyze.packet import Packet
 from views.func import killProxify
+from views.analyze.url_tree import UrlTree
 
 bp = Blueprint("detail", __name__, url_prefix = "/detail")
 
@@ -273,19 +275,82 @@ def get_url_tree(data):
     if not data["target"] in share_memory.keys():
         return
 
-    while True:
-        if "url_tree" in share_memory[data["target"]].keys():
+    if "url_tree" in share_memory[data["target"]].keys():
+        socketio.emit("receive", {
+            "data" : {
+                "url_tree" : share_memory[data["target"]]["url_tree"]
+            }
+        }, room = request.sid)
+
+    else:
+        socketio.emit("receive", {
+            "data" : {
+                "url_tree" : {}
+            }
+        }, room = request.sid)
+
+
+@socketio.on("get_packet")
+def getPacket(data):
+    global share_memory
+
+    if data["target"] in share_memory.keys():
+        file_path = data["file_path"]
+        file_name = data["file_name"]
+
+        with open(os.path.join(file_path, data["target"], file_name), encoding="utf8", errors='ignore') as file_data:
+            packet_data = file_data.read()
+            regex_result = re.search("HTTP\/[0,1,2]{1}.[0,1]{1} \d{3} ", packet_data)
+
+            ##  요청 데이터만 있고 응답이 없는 경우
+            if regex_result == None:
+                return
+
+            packet = Packet(packet_data, regex_result, file_name)
+
             socketio.emit("receive", {
+                "target" : data["target"],
                 "data" : {
-                    "url_tree" : share_memory[data["target"]]["url_tree"]
+                    "packet" : {
+                        "request" : packet.request,
+                        "response" : packet.response,
+                    }
                 }
             }, room = request.sid)
 
-        else:
-            socketio.emit("receive", {
-                "data" : {
-                    "url_tree" : {}
-                }
-            }, room = request.sid)
+
+@socketio.on("search_packet")
+def searchPacket(data):
+    global share_memory
+    url_tree_obj = UrlTree()
+
+    if data["target"] in share_memory.keys():
+        result = subprocess.run(["grep", "-rno", data["data"], os.path.join(data["target_path"], data["target"])], capture_output=True).stdout.decode()
         
-        time.sleep(2)
+        result = result.split("\n")
+        file_list = list()
+        for d in result:
+            tmp = d.split(".txt:")
+
+            if len(tmp) != 2:
+                continue
+            file_list.append(tmp[0] + ".txt")
+        
+        for file_path in file_list:
+            with open(file_path, encoding="utf8", errors='ignore') as file_data:
+                packet_data = file_data.read()
+                regex_result = re.search("HTTP\/[0,1,2]{1}.[0,1]{1} \d{3} ", packet_data)
+
+                ##  요청 데이터만 있고 응답이 없는 경우
+                if regex_result == None:
+                    return
+
+                packet = Packet(packet_data, regex_result, file_path.split("/")[::-1][0])
+                url_tree_obj.start(f"http://{packet.request['header']['Host']}{packet.request['url']}", file_path.split("/")[::-1][0], data["target"])
+        
+
+        socketio.emit("receive", {
+            "data" : {
+                "url_tree" : url_tree_obj.getObjectToDict(data["target"])
+            }
+        }, room = request.sid)

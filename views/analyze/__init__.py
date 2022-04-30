@@ -46,7 +46,7 @@ def fileMonitoring(SAVE_DIR_PATH, target_site, share_memory):
                 packet = Packet(packet_data, regex_result, file_name)
                 if checkContentType(packet):
                     analyze_obj.start(packet, file_name, target_folder)
-                    url_tree_obj.start(f"http://{packet.request['header']['Host']}{packet.request['url']}", file_name)
+                    url_tree_obj.start(f"http://{packet.request['header']['Host']}{packet.request['url']}", file_name, target_site)
 
             # if tmp_count % 100 == 0:
             #     share_memory[target_site] = {
@@ -59,7 +59,7 @@ def fileMonitoring(SAVE_DIR_PATH, target_site, share_memory):
             "wappalyzer" : analyze_obj.wappalyzer_obj.wappalyer_result,
             "attack_vector" : analyze_obj.attack_vector_obj.attack_vector_result,
             "packet_count" : prev_file_count,
-            "url_tree" : url_tree_obj.getObjectToDict("ecampus.changwon.ac.kr")
+            "url_tree" : url_tree_obj.getObjectToDict(target_site)
         }
 
 

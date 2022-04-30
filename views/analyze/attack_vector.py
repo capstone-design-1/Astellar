@@ -28,7 +28,7 @@ class AttackVector:
         self.__detect_open_redirect()
         self.__detect_KeyLeak()
         self.__detect_S3_bucket()
-        self.__detect_IDOR()
+        # self.__detect_IDOR()
         self.__detect_file_download()
         self.__detect_DOM_XSS()
         self.__detect_JWT()

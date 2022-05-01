@@ -79,6 +79,9 @@ class UrlTree:
     def getObjectToDict(self, target) -> list:
         return_data = dict()
 
+        if not target in self.url_tree.keys():
+            return return_data
+
         for host in self.url_tree[target].keys():
             return_data[host] = self.__getObjectToDict(host, self.url_tree[target][host])
         

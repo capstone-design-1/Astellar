@@ -334,6 +334,9 @@ def searchPacket(data):
 
             if len(tmp) != 2:
                 continue
+            if tmp[0] + ".txt" in file_list:
+                continue
+
             file_list.append(tmp[0] + ".txt")
         
         for file_path in file_list:

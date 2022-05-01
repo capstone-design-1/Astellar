@@ -5,6 +5,7 @@ import json
 
 from db.table import *
 from views.func import getFolderNames
+from views.analyze.osint import Osint
 
 bp = Blueprint("detail-api", __name__, url_prefix = "/detail/api")
 
@@ -87,4 +88,15 @@ def detectFilter():
         return_data.append(key)
     
     return jsonify(return_data)
-        
+
+
+@bp.route("/get_osint", methods=["GET"])
+def getOSINT():
+    target = request.args.get("target")
+    
+    if target == None:
+        abort(400, description = "Parameter 'target' must be needed.")
+    
+    osint = Osint()
+
+    return jsonify(osint.start(target))

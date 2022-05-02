@@ -14,12 +14,14 @@ from __init__ import socketio
 from views.func import getFolderNames
 from views.analyze import fileMonitoring
 from views.analyze.packet import Packet
-from views.func import killProxify
+from views.func import killProxify, killChrome
 from views.analyze.url_tree import UrlTree
+from views.auto.auto_crawling import autoBot
 
 bp = Blueprint("detail", __name__, url_prefix = "/detail")
 
 check = dict()
+auto_check = dict()
 alive_response = list()
 multi_manager = multiprocessing.Manager()
 share_memory = multi_manager.dict()
@@ -60,6 +62,7 @@ def handle_message(data):
     
     ##  새로운 타겟의 분석 요청이 들어 왔을 때
     if not target in check.keys():
+        print(">>>> ", request.sid)
         share_memory[target] = dict()
 
         result = multiprocessing.Process(name="file_monitoring", target=fileMonitoring, args=(SAVE_DIR_PATH, target, share_memory, ))
@@ -79,6 +82,7 @@ def handle_message(data):
 @socketio.on("disconnect")
 def disconnect():
     global check
+    global auto_check
     global alive_response
 
     loop_tmp = 0
@@ -96,6 +100,23 @@ def disconnect():
                 killProxify()
                 check[target]["process"].terminate()
                 check.pop(target)
+            break
+    
+    loop_tmp = 0
+    for target in auto_check.keys():
+        for sid in auto_check[target]["sid"]:
+            if sid == request.sid:
+                print("[Debug] Client Disconnect")
+                auto_check[target]["sid"].remove(sid)
+                loop_tmp = 1
+                break
+        
+        if loop_tmp:
+            if len(auto_check[target]["sid"]) == 0:
+                print("[Debug] Auto Bot terminate")
+                killChrome()
+                auto_check[target]["process"].terminate()
+                auto_check.pop(target)
             break
 
 @socketio.on("get_realtime_data")
@@ -357,3 +378,36 @@ def searchPacket(data):
                 "url_tree" : url_tree_obj.getObjectToDict(data["target"])
             }
         }, room = request.sid)
+
+
+@socketio.on("auto")
+def autoBotStart(data):
+    global share_memory
+    global auto_check
+
+    target = data["target"]
+
+    if not target in share_memory.keys():
+        return
+    
+    ##  새로운 타겟의 분석 요청이 들어 왔을 때
+    if not target in auto_check.keys():
+        print(">>>> ", request.sid)
+        result = multiprocessing.Process(name="auto_bot", target=autoBotExecute, args=(f"http://{target}", ))
+        result.start()
+        auto_check[target] = dict()
+        auto_check[target]["sid"] = list()
+        auto_check[target]["sid"].append(request.sid)
+        auto_check[target]["process"] = result
+
+    ##  타겟이 분석 중 이지만, 다른 세션으로 접속하였을 때, (똑같은 URL을 여러개 띄웠을 때)
+    elif not request.sid in auto_check[target]["sid"]:
+        auto_check[target]["sid"].append(request.sid)
+
+    else:
+        socketio.emit("error", "Already start analyzing.")
+
+def autoBotExecute(data):
+    auto_bot = autoBot()
+    auto_bot.start(data)
+    # os.system(f"python3 ./views/auto/auto_crawling.py {data}")

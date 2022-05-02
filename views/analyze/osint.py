@@ -43,7 +43,11 @@ class Osint:
         
 
         api = shodan.Shodan(SHODAN_API_KEY)
-        results = api.host(domain_to_ip)
+        try:
+            results = api.host(domain_to_ip)
+        except:
+            # shodan.exception.APIError: No information available for that IP.
+            return list()
 
         if not "ports" in results.keys():
             return list()

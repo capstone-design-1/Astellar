@@ -12,3 +12,8 @@ def killProxify():
     for proc in psutil.process_iter():
         if proc.name() == "proxify":
             proc.kill()
+
+def killChrome():
+    for proc in psutil.process_iter():
+        if proc.name() == "chrome":
+            proc.kill()

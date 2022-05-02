@@ -581,8 +581,7 @@ function setMethodFilter(e){
 }
 
 function getOSINT(){
-    // fetch(`/detail/api/get_osint?target=${target_name}`)
-    fetch(`/detail/api/get_osint?target=startupgarden.fi`)
+    fetch(`/detail/api/get_osint?target=${target_name}`)
     .then(data => data.json())
     .then((res) => {
         const selector = document.getElementsByClassName("osint-detail")[0];

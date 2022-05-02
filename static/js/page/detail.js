@@ -48,9 +48,6 @@ window.onload = function(){
                 case "cve_modal":
                     setCveDetail(data[key]);
                     break;
-                case "ports":
-                    setPortsDetail(data[key])
-                    break;
                 case "error":
                     alert(data[key]["message"]);
                     break;
@@ -583,26 +580,39 @@ function setMethodFilter(e){
     setAttackVector(prev_attack_vector, 1);
 }
 
-function setPortsEvent(){
-    socket.emit("get_shodan", {"target": target_name});
-}
+function getOSINT(){
+    fetch(`/detail/api/get_osint?target=${target_name}`)
+    .then(data => data.json())
+    .then((res) => {
+        const selector = document.getElementsByClassName("osint-detail")[0];
+        const li_template = `<li> {{data}} </li>`;
+        const html = `  <div class="col-6">
+                            <h4 class="text-success"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{detect_name}} </h4>
+                            <ul class="list-ticked">
+                                {{li_list}}
+                            </ul>
+                        </div>`;
 
-function setPortsDetail(data){
-    const selector = document.getElementsByClassName("osint-detail")[0];
-    const port_name = `<li>{{port_name}}</li>`;
-    const html = `  <div class="col-6">
-                        <h4 class="text-success"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ports </h4>
-                        <ul class="list-ticked">
-                            {{port_list}}
-                        </ul>
-                    </div>`;
-    
-    let port_template = '';
-    for(let port of data){
-        port_template += port_name.replace("{{port_name}}", port);
-    }
+        let template = ``;
+        for(let key of Object.keys(res)){
+            let li_data = ``;
 
-    selector.innerHTML = html.replace("{{port_list}}", port_template);
+            for(let list of res[key]){
+                if(typeof list == "string" && list.indexOf("http") == 0){
+                    list = `<a href='${list}' target='_blank'>${list.substr(0, 20) + "..."}</a>`;
+                }
+
+                li_data += li_template.replace("{{data}}", list);
+            }
+
+            if (li_data.length != 0){
+                template += html.replace("{{detect_name}}", key)
+                                .replace("{{li_list}}", li_data);
+            }
+        }
+
+        selector.innerHTML = template;
+    })
 }
 
 function escapeHTML(data){

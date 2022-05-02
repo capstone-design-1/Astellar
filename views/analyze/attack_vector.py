@@ -5,6 +5,7 @@ import datetime
 import os
 import socket, ssl
 import json
+import requests
 
 class AttackVector:
     def __init__(self):
@@ -32,6 +33,7 @@ class AttackVector:
         self.__detect_file_download()
         self.__detect_DOM_XSS()
         self.__detect_JWT()
+        self.__detect_file_upload_tag()
 
     def __set_target(self):
         host_info = self.file_name.split("-")[0]
@@ -379,7 +381,7 @@ class AttackVector:
             if len(data) != 2:
                 return
 
-            regex_result = re.search(regex, data[1])
+            regex_result = re.search(regex, unquote(data[1]))
             if regex_result != None:
                 self.__set_result({
                     "detect_name" : "Open Redirect",
@@ -407,8 +409,8 @@ class AttackVector:
                 return
 
         ##  파라미터가 있는 경우
+        idor_param_list = ["account", "comment", "edit", "email", "id", "no", "user", "Id"]
         if len(url_parse.query) != 0:
-            idor_param_list = ["account", "comment", "edit", "email", "id", "no", "user", "Id"]
 
             if self.packet.request["method"] == "GET":
                 for query in url_parse.query.split("&"):
@@ -446,76 +448,74 @@ class AttackVector:
                             })
                         except:
                             pass
+                        
+        elif self.packet.request["method"] == "POST":
+            if not "Content-Type" in self.packet.request["header"].keys():
+                return
+            
+            body = self.packet.request["body"]
 
-                    
+            if "application/x-www-form-urlencoded" in self.packet.request["header"]["Content-Type"]:
+                for param in body.split("&"):
+                    data = param.split("=")[0].lower()
 
-            elif self.packet.request["method"] == "POST":
-                if not "Content-Type" in self.packet.request["header"].keys():
+                    for idor_param in idor_param_list:
+                        if data in idor_param:
+                            self.__set_result({
+                                "detect_name" : "IDOR (not req)",
+                                "method" : self.packet.request["method"],
+                                "url" : self.target_host + self.packet.request["url"],
+                                "body" : "",
+                                "vuln_parameter" : data,
+                                "risk" : "info",
+                                "file_name" : self.file_name,
+                                "reference" : "",
+                                "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                                "file_path" : self.file_path
+                            })
+
+            elif "application/json" in self.packet.request["header"]["Content-Type"]:
+                try:
+                    json_data = json.loads(body)
+                except:
+                    print("[Debug] JSON parse Error: ", self.file_name)
                     return
                 
-                body = self.packet.request["body"]
-
-                if "application/x-www-form-urlencoded" in self.packet.request["header"]["Content-Type"]:
-                    for param in body.split("&"):
-                        data = param.split("=")[0].lower()
-
-                        for idor_param in idor_param_list:
-                            if data in idor_param:
-                                self.__set_result({
-                                    "detect_name" : "IDOR (not req)",
-                                    "method" : self.packet.request["method"],
-                                    "url" : self.target_host + self.packet.request["url"],
-                                    "body" : "",
-                                    "vuln_parameter" : data,
-                                    "risk" : "info",
-                                    "file_name" : self.file_name,
-                                    "reference" : "",
-                                    "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
-                                    "file_path" : self.file_path
-                                })
-
-                elif "application/json" in self.packet.request["header"]["Content-Type"]:
-                    try:
-                        json_data = json.loads(body)
-                    except:
-                        print("[Debug] JSON parse Error: ", self.file_name)
-                        return
-                    
-                    json_all_keys = list()
-                    if isinstance(json_data, list):
-                        for data in json_data:
-                            json_all_keys.extend(self.__get_json_all_keys(data))
-                    elif isinstance(json_data, dict):
-                        json_all_keys = self.__get_json_all_keys(json_data)
-                    else:
-                        return
-
-                    for compare in json_all_keys:
-                        for idor_param in idor_param_list:
-                            if idor_param in compare:
-                                self.__set_result({
-                                    "detect_name" : "IDOR (not req)",
-                                    "method" : self.packet.request["method"],
-                                    "url" : self.target_host + self.packet.request["url"],
-                                    "body" : "",
-                                    "vuln_parameter" : compare,
-                                    "risk" : "info",
-                                    "file_name" : self.file_name,
-                                    "reference" : "",
-                                    "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
-                                    "file_path" : self.file_path
-                                })
-
+                json_all_keys = list()
+                if isinstance(json_data, list):
+                    for data in json_data:
+                        json_all_keys.extend(self.__get_json_all_keys(data))
+                elif isinstance(json_data, dict):
+                    json_all_keys = self.__get_json_all_keys(json_data)
                 else:
-                    print("[Debug] Content-Type: ", self.packet.request["header"]["Content-Type"], self.file_name)
                     return
+
+                for compare in json_all_keys:
+                    for idor_param in idor_param_list:
+                        if idor_param in compare:
+                            self.__set_result({
+                                "detect_name" : "IDOR (not req)",
+                                "method" : self.packet.request["method"],
+                                "url" : self.target_host + self.packet.request["url"],
+                                "body" : "",
+                                "vuln_parameter" : compare,
+                                "risk" : "info",
+                                "file_name" : self.file_name,
+                                "reference" : "",
+                                "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                                "file_path" : self.file_path
+                            })
+
+            else:
+                print("[Debug] Content-Type: ", self.packet.request["header"]["Content-Type"], self.file_name)
+                return
 
         
         ##  파라미터가 없는 경우 
         elif self.packet.request["method"] == "GET":
 
             ##  /user/123 등의 이러한 url path 형태를 탐지
-            regex_url = "\/([\/a-zA-Z0-9%._-])+\/[0-9]+"
+            regex_url = "\/([\/a-zA-Z0-9%._-])+\/[0-9]+$"
             regex_result = re.search(regex_url, url_parse.path)
             if regex_result == None:
                 return
@@ -645,8 +645,34 @@ class AttackVector:
                 "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
                 "file_path" : self.file_path
             })
+        
+    
+    def __detect_file_upload_tag(self):
+        if not "Content-Type" in self.packet.response["header"].keys():
+            return
 
+        if not "html" in self.packet.response["header"]["Content-Type"]:
+            return
+        
+        try:
+            html = BeautifulSoup(self.packet.response["body"], "lxml")
+        except Exception as e:
+            print("[Debug] file_upload BeautifulSoup error", e)
+            return
 
+        if html.find("input", {"type" : "file"}) != None:
+            self.__set_result({
+                "detect_name" : "File Upload",
+                "method" : self.packet.request["method"],
+                "url" : self.target_host + self.packet.request["url"],
+                "body" : "",
+                "vuln_parameter" : "",
+                "risk" : "info",
+                "file_name" : self.file_name,
+                "reference" : "",
+                "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                "file_path" : self.file_path
+            })
 
 
     def __set_result(self, data: dict):

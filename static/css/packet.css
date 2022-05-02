@@ -1,0 +1,53 @@
+.tree{
+    margin-top: 5px;
+  }
+  .tree, .tree ul{
+    list-style: none; /* 기본 리스트 스타일 제거 */
+    padding-left:15px;
+  }
+  .tree *:before{
+    width:15px;
+    height:15px;
+    display:inline-block;
+  }
+  .tree label{
+    cursor: pointer;
+    /* font-family: NotoSansKrMedium, sans-serif !important; */
+    font-size: 15px;
+    color: #ffffff;
+  }
+  .tree label:hover{
+    color: #00AACC;
+  }
+  .tree label:before{
+    content: '📂';
+    margin-right: 10px;
+  }
+  .tree label.lastTree:before{
+    content:'📝';
+  }
+  .tree label:hover:before{
+    content: '📂'
+  }
+  .tree label.lastTree:hover:before{
+    content:'📝';
+  }
+  .tree input[type="checkbox"] {
+    display: none;
+  }
+  .tree input[type="checkbox"]:checked~ul {
+    display: none;
+  }
+  .tree input[type="checkbox"]:checked+label:before{
+    content: '📁'
+  }
+  .tree input[type="checkbox"]:checked+label:hover:before{
+    content: '📁'
+  }
+  
+  .tree input[type="checkbox"]:checked+label.lastTree:before{
+    content: '📝';
+  }
+  .tree input[type="checkbox"]:checked+label.lastTree:hover:before{
+    content: '📝';
+  }

@@ -621,3 +621,19 @@ function escapeHTML(data){
                 .replace(/'/g, "&apos;")
                 .replace(/"/g, "&quot;");
 }
+
+let autoStatus = false;
+
+function autoStart(){
+    if(autoStatus){
+        alert("auto bot을 비활성화 합니다.");
+        //autoBot 끄기
+        autoStatus=false;
+    }
+    else{
+        socket.emit('auto', {"target": target_name});
+        alert("auto bot을 활성화 합니다.");
+        autoStatus=true;
+    }
+    
+}

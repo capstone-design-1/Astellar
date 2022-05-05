@@ -57,6 +57,8 @@ window.onload = function(){
                 case "error":
                     alert(data[key]["message"]);
                     break;
+                case "success":
+                    alert(data[key]);
             }
         }
     });

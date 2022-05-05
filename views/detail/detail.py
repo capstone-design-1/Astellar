@@ -338,9 +338,8 @@ def autoBotStart(data):
     if not target in share_memory.keys():
         return
     
-    ##  새로운 타겟의 분석 요청이 들어 왔을 때
-    
-    if not target in auto_check.keys():
+    ##  새로운 타겟의 분석 요청 및 auto bot이 동작 하고 있지 않을 경우
+    if len(auto_check.keys()) == 0 not target in auto_check.keys():
         auto_bot_finish_check[target] = False
         print(">>>> ", request.sid)
         result = multiprocessing.Process(name="auto_bot", target=autoBotExecute, args=(f"http://{target}", target, auto_bot_finish_check))
@@ -349,9 +348,17 @@ def autoBotStart(data):
         auto_check[target]["sid"] = list()
         auto_check[target]["sid"].append(request.sid)
         auto_check[target]["process"] = result
-
+        socketio.emit("receive", {
+            "data" : {
+                "success" : "auto bot을 활성화 합니다."
+            }
+        }, room = request.sid)
     else:
-        socketio.emit("error", "이미 auto bot이 동작 중 입니다.", room = request.sid)
+        socketio.emit("receive", {
+            "data" : {
+                "error" : "이미 auto bot이 동작 중 입니다."
+            }
+        }, room = request.sid)
 
 
 @socketio.on("auto_stop")

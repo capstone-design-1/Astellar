@@ -6,6 +6,7 @@ const monitor_path = document.getElementsByName("monitor_path")[0].value;
 const method_checkbox = document.getElementsByClassName("method_filter_checkbox");
 let detect_filter_list = [];
 let method_filter_list = ["GET", "POST"];
+let interval_check_auto_bot;
 
 window.onload = function(){
     if(refresh_btn.length != 0){
@@ -47,6 +48,11 @@ window.onload = function(){
                     break;
                 case "cve_modal":
                     setCveDetail(data[key]);
+                    break;
+                case "auto_finish_check":
+                    if(data[key] == true){
+                        checkAutoBotFinish(false);
+                    }
                     break;
                 case "error":
                     alert(data[key]["message"]);
@@ -626,14 +632,32 @@ let autoStatus = false;
 
 function autoStart(){
     if(autoStatus){
-        alert("auto bot을 비활성화 합니다.");
+        alert("auto bot을 중지 합니다.");
         //autoBot 끄기
         autoStatus=false;
+        clearInterval(interval_check_auto_bot);
+        socket.emit("auto_stop", {"target" : target_name});
+        document.getElementsByClassName("auto-bot")[0].innerHTML = "Start Auto Bot";
     }
     else{
         socket.emit('auto', {"target": target_name});
-        alert("auto bot을 활성화 합니다.");
+        alert("auto bot을 시작 합니다.");
         autoStatus=true;
+        checkAutoBotFinish(true);
+        document.getElementsByClassName("auto-bot")[0].innerHTML = "Stop Auto Bot";
     }
-    
+}
+
+function checkAutoBotFinish(bool){
+    if(bool == true){
+        interval_check_auto_bot = setInterval(() => {
+            socket.emit("auto_check_finish", {"target" : target_name});
+        }, 2000);
+    }
+    else{
+        clearInterval(interval_check_auto_bot);
+        alert("auto bot 기능이 끝났습니다.");
+        autoStatus=false;
+        document.getElementsByClassName("auto-bot")[0].innerHTML = "Start Auto Bot";
+    }
 }

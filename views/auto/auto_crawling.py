@@ -16,7 +16,6 @@ class autoBot:
         self.visited = defaultdict(list)
         self.file_extension = ("pdf", "jpeg", "jpg", "png", "hwp", "gif", "doc")
 
-
         PROXY = "localhost:8888"
 
         webdriver.DesiredCapabilities.CHROME['proxy'] = {
@@ -48,12 +47,17 @@ class autoBot:
         self.queue.append([before_url.scheme + "://" + self.target,0])
         self.visited[self.target].append(self.target)
 
-        self.BFS()
+        return self.BFS()
 
     # href 찾고, 중복인지 검사 -> 중복 ㄴㄴ면 queue에 담기
     def search(self, url, depth):
-        self.driver.get(url)
-        # print("current url : ", self.driver.current_url)
+        try:
+            self.driver.get(url)
+        except Exception as e:
+            print("[Debug] selenium driver Exception: ", e)
+            return True
+
+        print("current url : ", self.driver.current_url)
         try:
             alert = Alert(self.driver)
             alert.accept()
@@ -62,7 +66,14 @@ class autoBot:
         
         tmp = self.driver.find_elements_by_tag_name("a")
         for link in tmp:
-            next_url = link.get_attribute("href")
+            flag = True
+            while flag:
+                try:
+                    next_url = link.get_attribute("href")
+                    flag = False
+                except:
+                    time.sleep(2)
+
             # <a> 태그에서 href 못찾으면 NoneType -> catch
             if not next_url:
                 continue
@@ -84,11 +95,17 @@ class autoBot:
         cnt = 0
         while self.queue :
             url, depth = self.queue.popleft()
-            if depth > 2:
+            if depth > 4:
                 continue
-            self.search(url, depth)
+            return_check = self.search(url, depth)
+
+            if return_check == True:
+                break
+
             time.sleep(0.5)
-        return
+        
+        self.driver.quit()
+        return True
 
     # for link in tmp:
     # 	BFS(link)

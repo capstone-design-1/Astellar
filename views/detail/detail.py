@@ -4,23 +4,25 @@ import re
 import time
 import requests
 import json
-import shodan
-import socket
 import os
+import subprocess
 
 
 from __init__ import socketio
 from views.func import getFolderNames
 from views.analyze import fileMonitoring
 from views.analyze.packet import Packet
-from views.func import killProxify
+from views.func import killProxify, killChrome
+from views.analyze.url_tree import UrlTree
+from views.auto.auto_crawling import autoBot
 
 bp = Blueprint("detail", __name__, url_prefix = "/detail")
 
 check = dict()
-alive_response = list()
+auto_check = dict()
 multi_manager = multiprocessing.Manager()
 share_memory = multi_manager.dict()
+auto_bot_finish_check = multi_manager.dict()
 
 @bp.route("/<target_name>", methods=["GET"])
 def detail(target_name):
@@ -49,15 +51,16 @@ def handle_message(data):
     SAVE_DIR_PATH = data["monitor_path"]
 
     if target.find("..") != -1:
-        socketio.emit("error", "Illegal value.")
+        socketio.emit("error", "Illegal value.", room = request.sid)
         return
 
     if not target in getFolderNames(SAVE_DIR_PATH):
-        socketio.emit("error", "Not found target.")
+        socketio.emit("error", "Not found target.", room = request.sid)
         return
     
     ##  새로운 타겟의 분석 요청이 들어 왔을 때
     if not target in check.keys():
+        print(">>>> ", request.sid)
         share_memory[target] = dict()
 
         result = multiprocessing.Process(name="file_monitoring", target=fileMonitoring, args=(SAVE_DIR_PATH, target, share_memory, ))
@@ -72,12 +75,12 @@ def handle_message(data):
         check[target]["sid"].append(request.sid)
 
     else:
-        socketio.emit("error", "Already start analyzing.")
+        socketio.emit("error", "Already start analyzing.", room = request.sid)
 
 @socketio.on("disconnect")
 def disconnect():
     global check
-    global alive_response
+    global auto_check
 
     loop_tmp = 0
     for target in check.keys():
@@ -95,6 +98,24 @@ def disconnect():
                 check[target]["process"].terminate()
                 check.pop(target)
             break
+    
+    loop_tmp = 0
+    for target in auto_check.keys():
+        for sid in auto_check[target]["sid"]:
+            if sid == request.sid:
+                print("[Debug] Client Disconnect")
+                auto_check[target]["sid"].remove(sid)
+                
+                print("[Debug] Auto Bot terminate")
+                killChrome()
+                auto_check[target]["process"].terminate()
+                auto_check.pop(target)
+                auto_bot_finish_check.pop(target)
+                loop_tmp = 1
+                break
+        
+        if loop_tmp == 1:
+            break
 
 @socketio.on("get_realtime_data")
 def getResultRealTime(data):
@@ -103,11 +124,23 @@ def getResultRealTime(data):
     if data["target"] in share_memory.keys():
 
         while True:
-            socketio.emit("receive", { 
-                "target" : data["target"],
-                "data" : share_memory[data["target"]]
-            }, room = request.sid)
-            
+            try:
+                socketio.emit("receive", { 
+                    "target" : data["target"],
+                    "data" : {
+                        "wappalyzer" : share_memory[data["target"]]["wappalyzer"],
+                        "attack_vector" : share_memory[data["target"]]["attack_vector"],
+                        "packet_count" : share_memory[data["target"]]["packet_count"]
+                    }
+                }, room = request.sid)
+            except:
+                socketio.emit("receive", { 
+                    "target" : data["target"],
+                    "data" : {
+                        "packet_count" : 0
+                    }
+                }, room = request.sid)
+
             time.sleep(2)
 
 @socketio.on("get_packet_detail")
@@ -205,52 +238,176 @@ def getCve(data):
         }, room = request.sid)
 
 
-@socketio.on("get_shodan")
-def getShodan(data):
+@socketio.on("get_url_tree")
+def get_url_tree(data):
     if not data["target"] in share_memory.keys():
         return
-    
-    try:
-        SHODAN_API_KEY = os.environ["SHODAN_API"]
-    except:
-        socketio.emit("receive", {
-            "data": {
-                "error" : {
-                    "message" : "shodan API 키가 없습니다. 환경변수 SHODAN_API 를 등록해 주세요."
-                }
-            }
-        })
-        return
 
-    try:
-        domain_to_ip = socket.gethostbyname(data["target"])
+    if "url_tree" in share_memory[data["target"]].keys():
+        socketio.emit("receive", {
+            "data" : {
+                "url_tree" : share_memory[data["target"]]["url_tree"]
+            }
+        }, room = request.sid)
+
+    else:
+        socketio.emit("receive", {
+            "data" : {
+                "url_tree" : {}
+            }
+        }, room = request.sid)
+
+
+@socketio.on("get_packet")
+def getPacket(data):
+    global share_memory
+
+    if data["target"] in share_memory.keys():
+        file_path = data["file_path"]
+        file_name = data["file_name"]
+
+        with open(os.path.join(file_path, data["target"], file_name), encoding="utf8", errors='ignore') as file_data:
+            packet_data = file_data.read()
+            regex_result = re.search("HTTP\/[0,1,2]{1}.[0,1]{1} \d{3} ", packet_data)
+
+            ##  요청 데이터만 있고 응답이 없는 경우
+            if regex_result == None:
+                return
+
+            packet = Packet(packet_data, regex_result, file_name)
+
+            socketio.emit("receive", {
+                "target" : data["target"],
+                "data" : {
+                    "packet" : {
+                        "request" : packet.request,
+                        "response" : packet.response,
+                    }
+                }
+            }, room = request.sid)
+
+
+@socketio.on("search_packet")
+def searchPacket(data):
+    global share_memory
+    url_tree_obj = UrlTree()
+
+    if data["target"] in share_memory.keys():
+        result = subprocess.run(["grep", "-rno", data["data"], os.path.join(data["target_path"], data["target"])], capture_output=True).stdout.decode()
         
-        ##  IP 값인지 확인
-        socket.inet_aton(domain_to_ip)
-    except:
+        result = result.split("\n")
+        file_list = list()
+        for d in result:
+            tmp = d.split(".txt:")
+
+            if len(tmp) != 2:
+                continue
+            if tmp[0] + ".txt" in file_list:
+                continue
+
+            file_list.append(tmp[0] + ".txt")
+        
+        for file_path in file_list:
+            with open(file_path, encoding="utf8", errors='ignore') as file_data:
+                packet_data = file_data.read()
+                regex_result = re.search("HTTP\/[0,1,2]{1}.[0,1]{1} \d{3} ", packet_data)
+
+                ##  요청 데이터만 있고 응답이 없는 경우
+                if regex_result == None:
+                    return
+
+                packet = Packet(packet_data, regex_result, file_path.split("/")[::-1][0])
+                url_tree_obj.start(f"http://{packet.request['header']['Host']}{packet.request['url']}", file_path.split("/")[::-1][0], data["target"])
+        
+
         socketio.emit("receive", {
-            "data": {
-                "error" : {
-                    "message" : "도메인을 IP주소로 변환하는 과정에서 에러가 발생했습니다."
-                }
+            "data" : {
+                "url_tree" : url_tree_obj.getObjectToDict(data["target"])
             }
-        })
+        }, room = request.sid)
+
+
+@socketio.on("auto")
+def autoBotStart(data):
+    global share_memory
+    global auto_check
+    global auto_bot_finish_check
+
+    target = data["target"]
+
+    if not target in share_memory.keys():
         return
     
+    ##  새로운 타겟의 분석 요청이 들어 왔을 때
+    
+    if not target in auto_check.keys():
+        auto_bot_finish_check[target] = False
+        print(">>>> ", request.sid)
+        result = multiprocessing.Process(name="auto_bot", target=autoBotExecute, args=(f"http://{target}", target, auto_bot_finish_check))
+        result.start()
+        auto_check[target] = dict()
+        auto_check[target]["sid"] = list()
+        auto_check[target]["sid"].append(request.sid)
+        auto_check[target]["process"] = result
 
-    api = shodan.Shodan(SHODAN_API_KEY)
-    results = api.host(domain_to_ip)
+    else:
+        socketio.emit("error", "이미 auto bot이 동작 중 입니다.", room = request.sid)
 
-    if not "ports" in results.keys():
-        socketio.emit("receive", {
-            "data": {
-                "ports" : []
-            }
-        })
+
+@socketio.on("auto_stop")
+def autoBotStop(data):
+    global auto_check
+    global auto_bot_finish_check
+
+    target = data["target"]
+
+    loop_tmp = 0
+    for target in auto_check.keys():
+        for sid in auto_check[target]["sid"]:
+            if sid == request.sid:
+                print("[Debug] Client Disconnect")
+                auto_check[target]["sid"].remove(sid)
+                
+                print("[Debug] Auto Bot terminate")
+                killChrome()
+                auto_check[target]["process"].terminate()
+                auto_check.pop(target)
+                auto_bot_finish_check.pop(target)
+                loop_tmp = 1
+                break
+        
+        if loop_tmp == 1:
+            break
+
+
+@socketio.on("auto_check_finish")
+def autoCheckFinish(data):
+    global auto_bot_finish_check
+
+    target = data["target"]
+
+    if not target in auto_bot_finish_check.keys():
         return
+    
+    if auto_bot_finish_check[target] == True:
+        auto_check[target]["process"].terminate()
+        auto_check.pop(target)
+        socketio.emit("receive", {
+            "data" : {
+                "auto_finish_check" : True
+            }
+        }, room = request.sid)
+    
+    else:
+        socketio.emit("receive", {
+            "data" : {
+                "auto_finish_check" : False
+            }
+        }, room = request.sid)
 
-    socketio.emit("receive", {
-        "data": {
-            "ports" : results["ports"]
-        }
-    })
+
+def autoBotExecute(data, target, auto_bot_finish_check):
+    auto_bot_finish_check[target] = False
+
+    auto_bot = autoBot()
+    auto_bot_finish_check[target] = auto_bot.start(data)

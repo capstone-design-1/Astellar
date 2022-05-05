@@ -151,6 +151,14 @@
               </ul>
             </div>
           </li>
+          <li class="nav-item menu-items">
+            <a class="nav-link" href="/packet/{{return_data['target_name']}}" target="_blank">
+              <span class="menu-icon">
+                <i class="mdi mdi-chart-bar"></i>
+              </span>
+              <span class="menu-title">Packet Detail</span>
+            </a>
+          </li>
           </ul>
       </nav>
       <!-- partial -->
@@ -173,10 +181,11 @@
             </ul>
             <ul class="navbar-nav navbar-nav-right">
               <li class="nav-item dropdown d-none d-lg-block">
-                <button class="nav-link btn btn-success create-new-button" onclick="">Start Auto Bot</button>
+                <button class="nav-link btn btn-success create-new-button auto-bot" onclick="autoStart()">Start Auto Bot</button>
             </li>
-              <li class="nav-item dropdown d-none d-lg-block">
-                <!-- <a class="nav-link btn btn-success create-new-button" id="createbuttonDropdown" data-toggle="dropdown" aria-expanded="false" href="#">+ Create New Project</a> -->
+              <!--
+                <li class="nav-item dropdown d-none d-lg-block">
+                 <a class="nav-link btn btn-success create-new-button" id="createbuttonDropdown" data-toggle="dropdown" aria-expanded="false" href="#">+ Create New Project</a> 
                 <div class="dropdown-menu dropdown-menu-right navbar-dropdown preview-list" aria-labelledby="createbuttonDropdown">
                   <h6 class="p-3 mb-0">Projects</h6>
                   <div class="dropdown-divider"></div>
@@ -309,6 +318,7 @@
                   <p class="p-3 mb-0 text-center">See all notifications</p>
                 </div>
               </li>
+            -->
               
             </ul>
             <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
@@ -386,7 +396,7 @@
                 </div>
               </div>
 
-              <div class="col-xl-3 col-sm-6 grid-margin stretch-card" data-toggle="modal" data-target="#osint-detail" onclick='setPortsEvent()'>
+              <div class="col-xl-3 col-sm-6 grid-margin stretch-card" data-toggle="modal" data-target="#osint-detail" onclick='getOSINT()'>
                 <div class="card">
                   <div class="card-body">
                     <div class="row">
@@ -833,12 +843,8 @@
             </div> -->
           <!-- content-wrapper ends -->
           <!-- partial:partials/_footer.html -->
-          <footer class="footer">
-            <div class="d-sm-flex justify-content-center justify-content-sm-between">
-              <span class="text-muted d-block text-center text-sm-left d-sm-inline-block">Copyright © bootstrapdash.com 2020</span>
-              <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center"> Free <a href="https://www.bootstrapdash.com/bootstrap-admin-template/" target="_blank">Bootstrap admin templates</a> from Bootstrapdash.com</span>
-            </div>
-          </footer>
+         
+
           <!-- partial -->
         </div>
         <!-- main-panel ends -->

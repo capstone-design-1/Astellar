@@ -1,3 +1,5 @@
+import time
+
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from collections import deque
@@ -13,7 +15,6 @@ class autoBot:
         self.queue = deque()
         self.visited = defaultdict(list)
         self.file_extension = ("pdf", "jpeg", "jpg", "png", "hwp", "gif", "doc")
-
 
         PROXY = "localhost:8888"
 
@@ -35,21 +36,27 @@ class autoBot:
         self.driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
         self.driver.implicitly_wait(3)
 
-    def connect_webdriver(self, site):
+    def start(self, site):
 
         self.driver.get(site)
 
         before_url = urlparse(self.driver.current_url)
         self.target = before_url.netloc
-        print("target : ", self.target)
+        # print("target : ", self.target)
 
         self.queue.append([before_url.scheme + "://" + self.target,0])
         self.visited[self.target].append(self.target)
 
+        return self.BFS()
 
     # href 찾고, 중복인지 검사 -> 중복 ㄴㄴ면 queue에 담기
     def search(self, url, depth):
-        self.driver.get(url)
+        try:
+            self.driver.get(url)
+        except Exception as e:
+            print("[Debug] selenium driver Exception: ", e)
+            return True
+
         print("current url : ", self.driver.current_url)
         try:
             alert = Alert(self.driver)
@@ -59,7 +66,14 @@ class autoBot:
         
         tmp = self.driver.find_elements_by_tag_name("a")
         for link in tmp:
-            next_url = link.get_attribute("href")
+            flag = True
+            while flag:
+                try:
+                    next_url = link.get_attribute("href")
+                    flag = False
+                except:
+                    time.sleep(2)
+
             # <a> 태그에서 href 못찾으면 NoneType -> catch
             if not next_url:
                 continue
@@ -69,11 +83,11 @@ class autoBot:
             insert_url = next_url+"?"+current_url.query if current_url.query else next_url
             # 동일 path에 다른 parmetar 체크
             if len(self.visited[next_url]) >= 5 or (insert_url in self.visited[next_url]):
-                print("no insert this url : "+insert_url)
+                # print("no insert this url : "+insert_url)
                 continue
 
             if(current_url.netloc == self.target) and (not current_url.path.endswith(self.file_extension)):
-                print("insert : "+insert_url)
+                # print("insert : "+insert_url)
                 self.queue.append([insert_url, depth+1])
                 self.visited[next_url].append(insert_url)
 
@@ -81,10 +95,17 @@ class autoBot:
         cnt = 0
         while self.queue :
             url, depth = self.queue.popleft()
-            if depth > 2:
+            if depth > 4:
                 continue
-            self.search(url, depth)
-        return
+            return_check = self.search(url, depth)
+
+            if return_check == True:
+                break
+
+            time.sleep(0.5)
+        
+        self.driver.quit()
+        return True
 
     # for link in tmp:
     # 	BFS(link)
@@ -94,6 +115,4 @@ class autoBot:
 #test_code
 if __name__ == "__main__":
     test = autoBot()
-    test.connect_webdriver("https://changwon.ac.kr")
-    test.BFS()
-    driver.quit()
+    test.start("https://casper.or.kr")

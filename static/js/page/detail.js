@@ -6,6 +6,7 @@ const monitor_path = document.getElementsByName("monitor_path")[0].value;
 const method_checkbox = document.getElementsByClassName("method_filter_checkbox");
 let detect_filter_list = [];
 let method_filter_list = ["GET", "POST"];
+let interval_check_auto_bot;
 
 window.onload = function(){
     if(refresh_btn.length != 0){
@@ -48,8 +49,10 @@ window.onload = function(){
                 case "cve_modal":
                     setCveDetail(data[key]);
                     break;
-                case "ports":
-                    setPortsDetail(data[key])
+                case "auto_finish_check":
+                    if(data[key] == true){
+                        checkAutoBotFinish(false);
+                    }
                     break;
                 case "error":
                     alert(data[key]["message"]);
@@ -583,26 +586,39 @@ function setMethodFilter(e){
     setAttackVector(prev_attack_vector, 1);
 }
 
-function setPortsEvent(){
-    socket.emit("get_shodan", {"target": target_name});
-}
+function getOSINT(){
+    fetch(`/detail/api/get_osint?target=${target_name}`)
+    .then(data => data.json())
+    .then((res) => {
+        const selector = document.getElementsByClassName("osint-detail")[0];
+        const li_template = `<li> {{data}} </li>`;
+        const html = `  <div class="col-6">
+                            <h4 class="text-success"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{detect_name}} </h4>
+                            <ul class="list-ticked">
+                                {{li_list}}
+                            </ul>
+                        </div>`;
 
-function setPortsDetail(data){
-    const selector = document.getElementsByClassName("osint-detail")[0];
-    const port_name = `<li>{{port_name}}</li>`;
-    const html = `  <div class="col-6">
-                        <h4 class="text-success"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ports </h4>
-                        <ul class="list-ticked">
-                            {{port_list}}
-                        </ul>
-                    </div>`;
-    
-    let port_template = '';
-    for(let port of data){
-        port_template += port_name.replace("{{port_name}}", port);
-    }
+        let template = ``;
+        for(let key of Object.keys(res)){
+            let li_data = ``;
 
-    selector.innerHTML = html.replace("{{port_list}}", port_template);
+            for(let list of res[key]){
+                if(typeof list == "string" && list.indexOf("http") == 0){
+                    list = `<a href='${list}' target='_blank'>${list.substr(0, 20) + "..."}</a>`;
+                }
+
+                li_data += li_template.replace("{{data}}", list);
+            }
+
+            if (li_data.length != 0){
+                template += html.replace("{{detect_name}}", key)
+                                .replace("{{li_list}}", li_data);
+            }
+        }
+
+        selector.innerHTML = template;
+    })
 }
 
 function escapeHTML(data){
@@ -610,4 +626,38 @@ function escapeHTML(data){
                 .replace(/>/g, "&gt;")
                 .replace(/'/g, "&apos;")
                 .replace(/"/g, "&quot;");
+}
+
+let autoStatus = false;
+
+function autoStart(){
+    if(autoStatus){
+        alert("auto bot을 중지 합니다.");
+        //autoBot 끄기
+        autoStatus=false;
+        clearInterval(interval_check_auto_bot);
+        socket.emit("auto_stop", {"target" : target_name});
+        document.getElementsByClassName("auto-bot")[0].innerHTML = "Start Auto Bot";
+    }
+    else{
+        socket.emit('auto', {"target": target_name});
+        alert("auto bot을 시작 합니다.");
+        autoStatus=true;
+        checkAutoBotFinish(true);
+        document.getElementsByClassName("auto-bot")[0].innerHTML = "Stop Auto Bot";
+    }
+}
+
+function checkAutoBotFinish(bool){
+    if(bool == true){
+        interval_check_auto_bot = setInterval(() => {
+            socket.emit("auto_check_finish", {"target" : target_name});
+        }, 2000);
+    }
+    else{
+        clearInterval(interval_check_auto_bot);
+        alert("auto bot 기능이 끝났습니다.");
+        autoStatus=false;
+        document.getElementsByClassName("auto-bot")[0].innerHTML = "Start Auto Bot";
+    }
 }

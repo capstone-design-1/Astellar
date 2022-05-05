@@ -6,3 +6,5 @@ shodan
 psutil
 selenium
 webdriver-manager
+lxml
+numpy

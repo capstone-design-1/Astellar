@@ -55,7 +55,10 @@ window.onload = function(){
                     }
                     break;
                 case "error":
-                    alert(data[key]["message"]);
+                    alert(data[key]);
+                    break;
+                case "success":
+                    alert(data[key]);
                     break;
             }
         }
@@ -632,7 +635,6 @@ let autoStatus = false;
 
 function autoStart(){
     if(autoStatus){
-        alert("auto bot을 중지 합니다.");
         //autoBot 끄기
         autoStatus=false;
         clearInterval(interval_check_auto_bot);
@@ -641,7 +643,7 @@ function autoStart(){
     }
     else{
         socket.emit('auto', {"target": target_name});
-        alert("auto bot을 시작 합니다.");
+        // alert("auto bot을 시작 합니다.");
         autoStatus=true;
         checkAutoBotFinish(true);
         document.getElementsByClassName("auto-bot")[0].innerHTML = "Stop Auto Bot";

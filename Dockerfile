@@ -2,6 +2,8 @@ FROM ubuntu:20.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 
+ENV SHODAN_API OdaaWSC4r5aTrLIgqXvokp7dtOTOFzDH
+
 RUN sed -i 's|docker.com/linux/debian|docker.com/linux/ubuntu|g' /etc/apt/sources.list
 RUN apt update -y
 RUN apt install python3 python3-pip git wget -y

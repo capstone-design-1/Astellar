@@ -8,6 +8,9 @@ import json
 import requests
 
 class AttackVector:
+    """
+    
+    """
     def __init__(self):
         self.attack_vector_result = list()
         self.idor_url_check = list()

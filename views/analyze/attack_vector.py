@@ -5,10 +5,23 @@ import datetime
 import os
 import socket, ssl
 import json
-import requests
+
 
 class AttackVector:
+    """
+    Packet 객체를 통해 request 및 response 패킷을 분석 후 attack vector를 제공
+    """
+
     def __init__(self):
+        """
+        Members:
+            - attack_vector_result: 분석 결과를 저장
+            - idor_url_check:       IDOR 가능 여부를 확인한 URL 목록, IDOR 가능 여부를 확인하기 전에 해당 변수를 통해 테스트 할지를 결정
+            - file_name:            현재 분석하고 있는 Packet 객체의 파일 이름
+            - target_host:          file_name 으로 부터 host 값을 추출함
+            - target_port:          file_name 으로 부터 port 값을 추출함
+        """
+
         self.attack_vector_result = list()
         self.idor_url_check = list()
         self.file_name = ''
@@ -17,6 +30,22 @@ class AttackVector:
         
 
     def start(self, packet, file_name: str, target_folder: str):
+        """
+        Attack vector 분석을 시작하는 함수.
+        Packet 객체를 기준으로 SQLI, IDOR, S3 Bucket 등 Attack Vector 를 분석하는 함수를 호출함.
+        self.start(Packet, 'this_is_file_name.txt', '/tmp/data/casper.or.kr/')
+
+        Args:
+            - packet:        Packet 객체
+            - file_name:     분석하고 있는 Packet 객체의 파일 이름
+            - target_folder: 분석하고 있는 폴더
+        
+        Members:
+            - file_name:    분석하고 있는 Packet 객체의 파일 이름
+            - file_path:    분석하고 있는 Packet 객체의 파일의 절대 경로, ex) /tmp/data/casper.or.kr/this_is_file_name.txt
+            - packet:       Packet 객체
+        """
+
         self.file_name = file_name
         self.file_path = os.path.join(target_folder, file_name)
         self.packet = packet
@@ -34,8 +63,14 @@ class AttackVector:
         self.__detect_DOM_XSS()
         self.__detect_JWT()
         self.__detect_file_upload_tag()
+        self.__detect_file_upload()
+
 
     def __set_target(self):
+        """
+        file_name 값으로 host와 port 정보를 추출함.
+        """
+
         host_info = self.file_name.split("-")[0]
         tmp = host_info.split(":")
 
@@ -111,17 +146,6 @@ class AttackVector:
             "file_path" : self.file_path
         })
 
-        # high_risk = ["email", "file", "password", "submit", "text", "link", "url", "search"]
-
-        # return_risk = "low"
-        # for tag in input_tag:
-        #     if tag["type"] in high_risk :
-        #         return_risk = "high"
-        #         break
-        
-        # if textarea_tag :
-        #     return_risk = "high"
-
 
     def __detect_DOM_XSS(self):
         try:
@@ -178,7 +202,8 @@ class AttackVector:
         
 
     def __detect_SQLI(self):
-        """ SQL injection을 탐지하기 위한 함수
+        """ 
+        SQL injection을 탐지하기 위한 함수
         
         """
 
@@ -238,6 +263,11 @@ class AttackVector:
     
 
     def __detect_CORS(self):
+        """
+        Response 패킷에서 CORS 관련 헤더를 분석.
+
+        """
+
         filter_content_types = ["css", "font", "otf"]
         if "Content-Type" in self.packet.response["header"].keys():
             for filter_content_type in filter_content_types:
@@ -262,6 +292,11 @@ class AttackVector:
     
 
     def __detect_SSRF(self):
+        """
+        Request 및 Response 패킷에서 body 데이터 중 URL 값이 있는지 분석.
+
+        """
+
         regex = "^(?:http(s)?:\/\/)[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$"
 
         if self.packet.request["method"] == "GET":
@@ -318,6 +353,10 @@ class AttackVector:
 
 
     def __detect_S3_bucket(self):
+        """
+        AWS에서 제공하고 있는 S3 Bucket 관련 URL이 존재하는지 Request 및 Response 패킷에서 검증
+        
+        """
 
         ##  response body 값이 엄청 클 경우(js, css), 해당 파일을 정규 표현식으로 검사하는 과정에서 상당한 시간이 소요됨.
         ##  따라서, js css 파일은 검사하지 않도록 설정
@@ -335,8 +374,7 @@ class AttackVector:
             "s3.(us|af|ap|ca|eu|me|sa)-(east|west|south|southeast|northeast|central|north)-(1|2|3).amazonaws.com\/[a-z0-9A-Z._-]+"    #   https://s3.ap-northeast-2.amazonaws.com/code.coursemos.co.kr/csmsmedia/js/addExtBtn.js
         ]
 
-        # TODO
-        # 현재 body에 여러개의 s3 bucket이 있을 경우, 첫번째 것만 탐지하게 됨.
+
         for pattern in patterns:
             result = dict()
             req_body_result = re.search(pattern, self.packet.request["body"])
@@ -369,6 +407,14 @@ class AttackVector:
 
 
     def __detect_open_redirect(self):
+        """
+        Request 및 Response 패킷에서 URL 데이터가 있는지 여부를 분석.
+        
+        """
+
+        ## TODO
+        ## 302관련 
+
         regex = "^(?:http(s)?:\/\/)[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$"
         query = urlparse(self.packet.request["url"]).query
 
@@ -398,6 +444,10 @@ class AttackVector:
 
 
     def __detect_IDOR(self):
+        """
+        Request 패킷에서 URL의 끝점이 int 로 끝날 경우, IDOR 가능 여부를 테스트.
+        
+        """
         if self.packet.response["status_code"] != '200':
             return
 
@@ -542,9 +592,6 @@ class AttackVector:
                 tmp_digit.append(match_digit + 1)
                 tmp_digit.append(match_digit - 1)
             
-            ## TODO
-            ## IDOR 요청 보내기 전, 검증 절차가 애매함.
-            ## 예를 들어, 
 
             ##  IDOR 테스트 요청을 보내기 전에, 검증
             if url_parse.path[ : regex_result.span()[0] + 1] in self.idor_url_check:
@@ -588,6 +635,11 @@ class AttackVector:
     
 
     def __detect_file_download(self):
+        """
+        Response 패킷에서 Content-Disposition 헤더를 통해 File Download 여부 분석.
+        
+        """
+
         if not "Content-Disposition" in self.packet.response["header"].keys():
             return
         
@@ -607,6 +659,11 @@ class AttackVector:
     
 
     def __detect_JWT(self):
+        """
+        Request 및 Response body 에서 JWT Token이 존재하는지 분석.
+        
+        """
+
         url_extension = urlparse(self.packet.request["url"]).path.split(".")[::-1][0]
         filter_extension = ["css", "js", "png", "jpg", "jpeg", "gif", "svg", "scss"]
 
@@ -648,6 +705,11 @@ class AttackVector:
         
     
     def __detect_file_upload_tag(self):
+        """
+        Response body 부분에서 file upload 기능이 존재하는지 분석.
+        
+        """
+
         if not "Content-Type" in self.packet.response["header"].keys():
             return
 
@@ -662,7 +724,7 @@ class AttackVector:
 
         if html.find("input", {"type" : "file"}) != None:
             self.__set_result({
-                "detect_name" : "File Upload",
+                "detect_name" : "File Upload (Tag)",
                 "method" : self.packet.request["method"],
                 "url" : self.target_host + self.packet.request["url"],
                 "body" : "",
@@ -675,10 +737,44 @@ class AttackVector:
             })
 
 
+    def __detect_file_upload(self):
+        """
+        Request 패킷 헤더에서 사용자가 파일 업로드를 했을 경우를 탐지
+        
+        """
+
+        keywords = ["multipart", "form-data", "boundary"]
+
+        if not "Content-Type" in self.packet.request["header"].keys():
+            return
+        
+        for keyword in keywords:
+            if keyword in self.packet.request["header"]["Content-Type"]:
+                self.__set_result({
+                    "detect_name" : "File Upload",
+                    "method" : self.packet.request["method"],
+                    "url" : self.target_host + self.packet.request["url"],
+                    "body" : "",
+                    "vuln_parameter" : "",
+                    "risk" : "medium",
+                    "file_name" : self.file_name,
+                    "reference" : "",
+                    "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                    "file_path" : self.file_path
+                })
+                break
+
+
     def __set_result(self, data: dict):
+        """
+        분석에 의해 탐지된 데이터는 중복 탐지를 제외한 나머지를 맴버 변수인 attack_vector_result 에 저장.
+
+        """
+
         detect_name = data["detect_name"]
         cur_path = data["url"].split("?")[0]
 
+        ## 분석 결과를 저장하기 전에 탐지 이름, 탐지 경로, 탐지 파라미터가 같은 경우, 중복 탐지이므로 저장하지 않음.
         for result in self.attack_vector_result:
 
             result_path = result["url"].split("?")[0]
@@ -689,6 +785,18 @@ class AttackVector:
     
 
     def __get_json_all_keys(self, json_data: dict) -> list:
+        """
+        dict 타입을 가진 데이터에서 모든 key만 추출.
+        self.__get_json_all_keys({"key_1" : {"key_2" : "data_2"}})
+
+        Args:
+            - json_data: dict 타입 데이터
+        
+        Returns:
+            - list: dict 타입의 모든 key 값을 list 타입으로 리턴.
+
+        """
+
         return_data = list()
 
         if not isinstance(json_data, dict):

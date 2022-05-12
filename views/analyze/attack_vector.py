@@ -63,6 +63,7 @@ class AttackVector:
         self.__detect_DOM_XSS()
         self.__detect_JWT()
         self.__detect_file_upload_tag()
+        self.__detect_file_upload()
 
 
     def __set_target(self):
@@ -723,7 +724,7 @@ class AttackVector:
 
         if html.find("input", {"type" : "file"}) != None:
             self.__set_result({
-                "detect_name" : "File Upload",
+                "detect_name" : "File Upload (Tag)",
                 "method" : self.packet.request["method"],
                 "url" : self.target_host + self.packet.request["url"],
                 "body" : "",
@@ -734,6 +735,34 @@ class AttackVector:
                 "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
                 "file_path" : self.file_path
             })
+
+
+    def __detect_file_upload(self):
+        """
+        Request 패킷 헤더에서 사용자가 파일 업로드를 했을 경우를 탐지
+        
+        """
+
+        keywords = ["multipart", "form-data", "boundary"]
+
+        if not "Content-Type" in self.packet.request["header"].keys():
+            return
+        
+        for keyword in keywords:
+            if keyword in self.packet.request["header"]["Content-Type"]:
+                self.__set_result({
+                    "detect_name" : "File Upload",
+                    "method" : self.packet.request["method"],
+                    "url" : self.target_host + self.packet.request["url"],
+                    "body" : "",
+                    "vuln_parameter" : "",
+                    "risk" : "medium",
+                    "file_name" : self.file_name,
+                    "reference" : "",
+                    "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                    "file_path" : self.file_path
+                })
+                break
 
 
     def __set_result(self, data: dict):

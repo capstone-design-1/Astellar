@@ -53,7 +53,8 @@ class AttackVector:
         self.__set_target()
         self.__detect_SQLI()
         self.__detect_CORS()
-        self.__detect_reflectXSS()
+        self.__detect_reflectXSS_input()
+        self.__detect_reflectXSS_meta()
         self.__detect_SSRF()
         self.__detect_open_redirect()
         self.__detect_KeyLeak()
@@ -85,12 +86,12 @@ class AttackVector:
             self.target_port = tmp[1]
 
 
-    def __detect_reflectXSS(self):
-        #response 예외처리하기 -> html ?
+    def __detect_reflectXSS_input(self):
         try:
             soup = BeautifulSoup(self.packet.response["body"], 'html.parser')
         except:
             return
+
         if soup.find("html") == None :
             return
 
@@ -100,10 +101,9 @@ class AttackVector:
         if(input_tag == None and textarea_tag == None):
             return
         
-        # 정규표현식으로 ? 뒤에 내용 추출 &로 split -> 안됨 ㅠㅠㅠㅠ물음표안됨왜안됨
-        
         tmp = self.packet.request["url"].split("?")
-        # len(tmp) <= 1 : 파라미터값 없다는 뜻
+
+        ## 파라미터값 없을 경우
         if len(tmp) <= 1:
             return
 
@@ -146,6 +146,46 @@ class AttackVector:
             "file_path" : self.file_path
         })
 
+    
+    def __detect_reflectXSS_meta(self):
+        try:
+            html = BeautifulSoup(self.packet.response["body"], 'lxml')
+        except:
+            return
+
+        if html.find("html") == None :
+            return
+        
+        vuln_param = list()
+        querys = urlparse(self.packet.request["url"]).query
+
+        for query in querys.split("&"):
+            data = query.split("=")
+
+            if len(data) <= 1 or len(data[1]) < 4:
+                continue
+
+            for meta_tag in html.find_all("meta"):
+                try:
+                    if data[1] in meta_tag["content"]:
+                        vuln_param.append(data[0])
+                except KeyError:
+                    ## meta tag 속성에 content 가 없는 경우
+                    continue
+
+        if len(vuln_param) != 0:
+            self.__set_result({
+                "detect_name" : "Reflect XSS",
+                "method" : self.packet.request["method"],
+                "url" : self.target_host + self.packet.request["url"],
+                "body" : self.packet.request["body"],
+                "vuln_parameter" : list(set(vuln_param)),
+                "risk" : "medium",
+                "file_name" : self.file_name,
+                "reference" : "",
+                "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                "file_path" : self.file_path
+            })
 
     def __detect_DOM_XSS(self):
         try:
@@ -462,43 +502,37 @@ class AttackVector:
         idor_param_list = ["account", "comment", "edit", "email", "id", "no", "user", "Id"]
         if len(url_parse.query) != 0:
 
+            vuln_param = list()
+
             if self.packet.request["method"] == "GET":
                 for query in url_parse.query.split("&"):
                     data = query.split("=")
 
                     for idor_param in idor_param_list:
                         if data[0].lower() in idor_param:
-                            self.__set_result({
-                                "detect_name" : "IDOR (not req)",
-                                "method" : self.packet.request["method"],
-                                "url" : self.target_host + self.packet.request["url"],
-                                "body" : "",
-                                "vuln_parameter" : data[0].lower(),
-                                "risk" : "info",
-                                "file_name" : self.file_name,
-                                "reference" : "",
-                                "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
-                                "file_path" : self.file_path
-                            })
+                            vuln_param.append(data[0])
                     
                     if len(data) == 2:
                         try:
                             int(data[1])
-                            self.__set_result({
-                                "detect_name" : "IDOR (not req)",
-                                "method" : self.packet.request["method"],
-                                "url" : self.target_host + self.packet.request["url"],
-                                "body" : "",
-                                "vuln_parameter" : data[0].lower(),
-                                "risk" : "info",
-                                "file_name" : self.file_name,
-                                "reference" : "",
-                                "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
-                                "file_path" : self.file_path
-                            })
+                            vuln_param.append(data[0])
                         except:
                             pass
-                        
+
+            if len(vuln_param) != 0:
+                self.__set_result({
+                    "detect_name" : "IDOR (not req)",
+                    "method" : self.packet.request["method"],
+                    "url" : self.target_host + self.packet.request["url"],
+                    "body" : "",
+                    "vuln_parameter" : vuln_param,
+                    "risk" : "info",
+                    "file_name" : self.file_name,
+                    "reference" : "",
+                    "detect_time" : datetime.datetime.now().strftime('%H:%M:%S'),
+                    "file_path" : self.file_path
+                })
+
         elif self.packet.request["method"] == "POST":
             if not "Content-Type" in self.packet.request["header"].keys():
                 return

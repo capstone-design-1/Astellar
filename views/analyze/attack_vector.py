@@ -525,7 +525,7 @@ class AttackVector:
                     "method" : self.packet.request["method"],
                     "url" : self.target_host + self.packet.request["url"],
                     "body" : "",
-                    "vuln_parameter" : vuln_param,
+                    "vuln_parameter" : list(set(vuln_param)),
                     "risk" : "info",
                     "file_name" : self.file_name,
                     "reference" : "",

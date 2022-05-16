@@ -1,46 +1,63 @@
-import json
 from urllib.parse import urlparse
 
 class Packet:
+    """
+    Packet 파일을 Request 및 Response 패킷으로 구조화하는 객체
+
+    """
+
     def __init__(self, packet_data: str, regex_result, file_name: str):
         """
-            request = {
-                "method" : "POST",
-                "url" : "/dashboard?idx=1",
-                "http_protocol" : "HTTP/1.1",
-                "header" : {
-                    "Host" : "casper.or.kr:443",    ### or   casper.or.kr
-                    "Cookies" : "test=1; php=asdf; aaaa=bbbb",
-                    "User-Agent" : "asdf",
-                    ...
-                },
-                "body" : "id=admin&pw=admin"
-            }
-
-            response = {
-                "http_protocol" : "HTTP/1.1",
-                "status_code" : 200,
-                "reason" : "OK",   // ("Not Found", "Forbidden")
-                "header" : {
-                    "Set-Cookie" : "asdf=asdf",
-                    "Server" : "apache"
-                    ...
-                },
-                "body" : "<html><head><title>test</title></head><body>This is sample data ...."
-            } 
+        객체가 생성되자마자 인자로 넘어온 packet_data를 Request 및 Response 패킷으로 구조화 시킴.
+        
+        Args:
+            - packet_data:  packet의 row data
+            - regex_result: re.search("HTTP\/[0,1,2]{1}.[0,1]{1} \d{3} ", packet_data)의 정규 표현식 결과, Request 와 Response 경계를 찾기 위한 정규표현식
+            - file_name:    현재 분석 중인 파일 이름, this_is_file_name.txt
         
         """
+
         self.file_name = file_name
         self.target_host = self.__set_target_host()
         self.request = self.__set_request_packet(packet_data, regex_result)
         self.response = self.__set_response_packet(packet_data, regex_result)
     
 
-    def __set_target_host(self):
+    def __set_target_host(self) -> str:
+        """
+        self.file_name의 파일 이름을 통해 현재 호스트 값을 찾아냄.
+        ex) casper.or.kr:80-[random_str].txt
+
+        Returns:
+            - str: 현재 분석 중인 호스트 값을 리턴함. ex) casper.or.kr:80
+        """
+
         return self.file_name.split("-")[0]
 
 
     def __set_request_packet(self, packet_data: str, regex_result) -> dict:
+        """
+        인자 값인 packet_data와 Resquest 와 Response 경계를 알아내기 위한 정규 표헌식 regex_result로 Request 패킷을 구조화 시킴
+
+        Args:
+            - packet_data: packet의 row data
+            - regex_result: re.search("HTTP\/[0,1,2]{1}.[0,1]{1} \d{3} ", packet_data)의 정규 표현식 결과, Request 와 Response 경계를 찾기 위한 정규표현식
+
+        Returns:
+            - return_data:  {
+                                "method" : "POST",
+                                "url" : "/dashboard?idx=1",
+                                "http_protocol" : "HTTP/1.1",
+                                "header" : {
+                                    "Host" : "casper.or.kr:443",    ### or   casper.or.kr
+                                    "Cookies" : "test=1; php=asdf; aaaa=bbbb",
+                                    "User-Agent" : "asdf",
+                                    ...
+                                },
+                                "body" : "id=admin&pw=admin"
+                            }
+        """
+
         return_data = dict()
         index = regex_result.span()[0]
 
@@ -94,6 +111,27 @@ class Packet:
     
 
     def __set_response_packet(self, packet_data: str, regex_result) -> dict:
+        """
+        인자 값인 packet_data와 Resquest 와 Response 경계를 알아내기 위한 정규 표헌식 regex_result로 Response 패킷을 구조화 시킴
+
+        Args:
+            - packet_data: packet의 row data
+            - regex_result: re.search("HTTP\/[0,1,2]{1}.[0,1]{1} \d{3} ", packet_data)의 정규 표현식 결과, Request 와 Response 경계를 찾기 위한 정규표현식
+
+        Returns:
+            - return_data:  {
+                                "http_protocol" : "HTTP/1.1",
+                                "status_code" : 200,
+                                "reason" : "OK",   // ("Not Found", "Forbidden")
+                                "header" : {
+                                    "Set-Cookie" : "asdf=asdf",
+                                    "Server" : "apache"
+                                    ...
+                                },
+                                "body" : "<html><head><title>test</title></head><body>This is sample data ...."
+                            } 
+        """
+
         return_data = dict()
         index = regex_result.span()[0]
         response_packet = packet_data[index : ]
@@ -133,6 +171,11 @@ class Packet:
     
 
     def getRequestToRawData(self) -> str:
+        """
+        구조화 된 Request 데이터를 Row 데이터로 만들어 리턴.
+
+        """
+
         return_raw = f"{self.request['method']} {self.request['url']} {self.request['http_protocol']}\r\n"
 
         for header in self.request["header"]:
@@ -146,6 +189,11 @@ class Packet:
         return return_raw
     
     def getResponseToRawData(self) -> str:
+        """
+        구조화 된 Response 데이터를 Row 데이터로 만들어 리턴.
+
+        """
+        
         return_raw = f"{self.response['http_protocol']} {self.response['status_code']} {self.response['reason']}"
 
         for header in self.response["header"]:

@@ -2,8 +2,10 @@ from flask import Blueprint, abort, jsonify, request, current_app
 import multiprocessing
 import re
 import os
+import shutil
 
 from db.table import TodoTable
+from db.table import TargetSiteTable
 from views.func import getFolderNames
 from views.func import killProxify
 
@@ -211,6 +213,27 @@ def initProxify():
     return {
         "result" : "success"
     }
+
+@bp.route("/target/delete", methods=["GET"])
+def deleteSubDomain():
+    target = request.args.get("target")
+
+    if len(target) == 0:
+        return {
+            "result" : "error",
+            "message" : "target 파라미터가 비어 있습니다."
+        }
+    
+    TargetSiteTable().deleteDomain(target)
+
+    dir_path = os.path.join(current_app.config["SAVE_DIR_PATH"], target)
+    if os.path.exists(dir_path):
+        shutil.rmtree(dir_path)
+
+    return {
+        "result" : "success"
+    }
+
 
 
 def startProxify(log_path):

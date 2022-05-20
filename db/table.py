@@ -7,8 +7,10 @@ class TargetSiteTable:
         self.__table_name__ = "target_site"
         self.con = dbConnection()
 
+
     def __del__(self):
         self.con.close()
+
 
     def insertDomain(self, domain: str):
         """ domain 값을 삽입하는 함수
@@ -53,6 +55,24 @@ class TargetSiteTable:
         
         return cur.fetchall()
     
+
+    def deleteDomain(self, domain: str):
+        target_site_data = self.getDomainInfo(domain)
+        if len(target_site_data) == 0:
+            return
+        
+        target_idx = target_site_data[0][0]
+
+        query = """
+            DELETE FROM {table_name}
+            WHERE target_idx = ?
+        """.format(table_name = self.__table_name__)
+
+        self.con.cursor().execute(query, (target_idx, ))
+        self.con.commit()
+
+        SubdomainTable().deleteSubdomain(target_idx)
+
 
     def updateSearchTime(self, domain: str):
         now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')

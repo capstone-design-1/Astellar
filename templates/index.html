@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -22,137 +23,163 @@
     <!-- End layout styles -->
     <link rel="shortcut icon" href="/images/favicon.png" />
     <link rel="stylesheet" href="/css/custom.css">
-  </head>
-  <body>
+</head>
+
+<body>
     <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalCenterTitle">💡Create New Target</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalCenterTitle">💡Create New Target</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
-          </div>
-          <div class="modal-body">
-            <div class="row">
-              <div class="col">
-                저장 경로는<code>{{save_dir_path}}</code>입니다.<br>
-                <code>proxify</code>외부 프로그램으로 web packet을 수집합니다. <a href='https://github.com/projectdiscovery/proxify'>[링크]</a><br><br>
-                target 호스트를 작성해 주세요.<br><hr>
-                <div class="input-group">
-                  <input type="text" name="create-target-value" class="form-control" placeholder="blog.naver.com" aria-label="blog.naver.com" aria-describedby="basic-addon2">
-                  <div class="input-group-append">
-                    <button class="btn btn-sm btn-primary create-target" type="button">Create</button>
-                  </div>
                 </div>
-              </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col">
+                            저장 경로는<code>{{save_dir_path}}</code>입니다.<br>
+                            <code>proxify</code>외부 프로그램으로 web packet을 수집합니다. <a href='https://github.com/projectdiscovery/proxify'>[링크]</a><br><br> target 호스트를 작성해 주세요.<br>
+                            <hr>
+                            <div class="input-group">
+                                <input type="text" name="create-target-value" class="form-control" placeholder="blog.naver.com" aria-label="blog.naver.com" aria-describedby="basic-addon2">
+                                <div class="input-group-append">
+                                    <button class="btn btn-sm btn-primary create-target" type="button">Create</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary create-project-close" data-dismiss="modal">Close</button>
+                </div>
             </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary create-project-close" data-dismiss="modal">Close</button>
-          </div>
         </div>
-      </div>
     </div>
-    <div class="container-scroller">
-      <!-- partial:partials/_sidebar.html -->
-      <nav class="sidebar sidebar-offcanvas" id="sidebar">
-        <div class="sidebar-brand-wrapper d-none d-lg-flex align-items-center justify-content-center fixed-top">
-          <a class="sidebar-brand brand-logo" href="/"><img src="/images/logo.png" alt="logo" /></a>
-          <a class="sidebar-brand brand-logo-mini" href="/"><img src="/images/favicon.png" alt="logo" /></a>
+
+    <div class="modal fade" id="delete-target" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalCenterTitle">💡Delete Target</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col">
+                            선택한 타겟을 삭제 하시겠습니까?
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="targetDelete()">Delete</button>
+                    <button type="button" class="btn btn-secondary create-project-close" data-dismiss="modal">Close</button>
+                </div>
+            </div>
         </div>
-        <ul class="nav">
-          <li class="nav-item nav-category">
-            <span class="nav-link">Navigation</span>
-          </li>
-          <li class="nav-item menu-items">
-            <a class="nav-link" href="/">
-              <span class="menu-icon">
+    </div>
+
+    <div class="container-scroller">
+        <!-- partial:partials/_sidebar.html -->
+        <nav class="sidebar sidebar-offcanvas" id="sidebar">
+            <div class="sidebar-brand-wrapper d-none d-lg-flex align-items-center justify-content-center fixed-top">
+                <a class="sidebar-brand brand-logo" href="/"><img src="/images/logo.png" alt="logo" /></a>
+                <a class="sidebar-brand brand-logo-mini" href="/"><img src="/images/favicon.png" alt="logo" /></a>
+            </div>
+            <ul class="nav">
+                <li class="nav-item nav-category">
+                    <span class="nav-link">Navigation</span>
+                </li>
+                <li class="nav-item menu-items">
+                    <a class="nav-link" href="/">
+                        <span class="menu-icon">
                 <i class="mdi mdi-speedometer"></i>
               </span>
-              <span class="menu-title">Dashboard</span>
-            </a>
-          </li>
-          <li class="nav-item menu-items">
-            <a class="nav-link" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
-              <span class="menu-icon">
+                        <span class="menu-title">Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item menu-items">
+                    <a class="nav-link" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
+                        <span class="menu-icon">
                 <i class="mdi mdi-laptop"></i>
               </span>
-              <span class="menu-title">Target List</span>
-              <i class="menu-arrow"></i>
-            </a>
-            <div class="collapse" id="ui-basic">
-              <ul class="nav flex-column sub-menu">
-                {% for data in target_data %}
-                  <li class="nav-item"> <a class="nav-link" href="/detail/{{data['dir_name']}}">{{data["dir_name"]}}</a></li>
-                {% endfor %}
-              </ul>
-            </div>
-          </li>
-          
-        </ul>
-      </nav>
-      <!-- partial -->
-      <div class="container-fluid page-body-wrapper">
-        <!-- partial:partials/_navbar.html -->
-        <nav class="navbar p-0 fixed-top d-flex flex-row">
-          <div class="navbar-brand-wrapper d-flex d-lg-none align-items-center justify-content-center">
-            <a class="navbar-brand brand-logo-mini" href="/"><img src="/images/logo-mini.svg" alt="logo" /></a>
-          </div>
-          <div class="navbar-menu-wrapper flex-grow d-flex align-items-stretch">
-            <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
+                        <span class="menu-title">Target List</span>
+                        <i class="menu-arrow"></i>
+                    </a>
+                    <div class="collapse" id="ui-basic">
+                        <ul class="nav flex-column sub-menu">
+                            {% for data in target_data %}
+                            <li class="nav-item"> <a class="nav-link" href="/detail/{{data['dir_name']}}">{{data["dir_name"]}}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </li>
+
+            </ul>
+        </nav>
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_navbar.html -->
+            <nav class="navbar p-0 fixed-top d-flex flex-row">
+                <div class="navbar-brand-wrapper d-flex d-lg-none align-items-center justify-content-center">
+                    <a class="navbar-brand brand-logo-mini" href="/"><img src="/images/logo-mini.svg" alt="logo" /></a>
+                </div>
+                <div class="navbar-menu-wrapper flex-grow d-flex align-items-stretch">
+                    <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
               <span class="mdi mdi-menu"></span>
             </button>
-            <ul class="navbar-nav w-100">
-              <li class="nav-item w-100">
-                <form class="nav-link mt-2 mt-md-0 d-none d-lg-flex search">
-                  <input type="text" class="form-control" placeholder="Search products">
-                </form>
-              </li>
-            </ul>
-            <ul class="navbar-nav navbar-nav-right">
-              <li class="nav-item dropdown d-none d-lg-block">
-                <a class="nav-link btn btn-success create-new-button" data-toggle="modal" data-target="#exampleModalCenter">+ Create New Target</a>
-                <div class="dropdown-menu dropdown-menu-right navbar-dropdown preview-list" aria-labelledby="createbuttonDropdown">
-                  <h6 class="p-3 mb-0">Projects</h6>
-                  <div class="dropdown-divider"></div>
-                  <a class="dropdown-item preview-item">
-                    <div class="preview-thumbnail">
-                      <div class="preview-icon bg-dark rounded-circle">
-                        <i class="mdi mdi-file-outline text-primary"></i>
-                      </div>
-                    </div>
-                    <div class="preview-item-content">
-                      <p class="preview-subject ellipsis mb-1">Software Development</p>
-                    </div>
-                  </a>
-                  <div class="dropdown-divider"></div>
-                  <a class="dropdown-item preview-item">
-                    <div class="preview-thumbnail">
-                      <div class="preview-icon bg-dark rounded-circle">
-                        <i class="mdi mdi-web text-info"></i>
-                      </div>
-                    </div>
-                    <div class="preview-item-content">
-                      <p class="preview-subject ellipsis mb-1">UI Development</p>
-                    </div>
-                  </a>
-                  <div class="dropdown-divider"></div>
-                  <a class="dropdown-item preview-item">
-                    <div class="preview-thumbnail">
-                      <div class="preview-icon bg-dark rounded-circle">
-                        <i class="mdi mdi-layers text-danger"></i>
-                      </div>
-                    </div>
-                    <div class="preview-item-content">
-                      <p class="preview-subject ellipsis mb-1">Software Testing</p>
-                    </div>
-                  </a>
-                  <div class="dropdown-divider"></div>
-                  <p class="p-3 mb-0 text-center">See all projects</p>
-                </div>
-              </li>
-              <!--
+                    <ul class="navbar-nav w-100">
+                        <li class="nav-item w-100">
+                            <form class="nav-link mt-2 mt-md-0 d-none d-lg-flex search">
+                                <input type="text" class="form-control" placeholder="Search products">
+                            </form>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav navbar-nav-right">
+                        <li class="nav-item dropdown d-none d-lg-block">
+                            <a class="nav-link btn btn-success create-new-button" data-toggle="modal" data-target="#exampleModalCenter">+ Create New Target</a>
+                            <div class="dropdown-menu dropdown-menu-right navbar-dropdown preview-list" aria-labelledby="createbuttonDropdown">
+                                <h6 class="p-3 mb-0">Projects</h6>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item preview-item">
+                                    <div class="preview-thumbnail">
+                                        <div class="preview-icon bg-dark rounded-circle">
+                                            <i class="mdi mdi-file-outline text-primary"></i>
+                                        </div>
+                                    </div>
+                                    <div class="preview-item-content">
+                                        <p class="preview-subject ellipsis mb-1">Software Development</p>
+                                    </div>
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item preview-item">
+                                    <div class="preview-thumbnail">
+                                        <div class="preview-icon bg-dark rounded-circle">
+                                            <i class="mdi mdi-web text-info"></i>
+                                        </div>
+                                    </div>
+                                    <div class="preview-item-content">
+                                        <p class="preview-subject ellipsis mb-1">UI Development</p>
+                                    </div>
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item preview-item">
+                                    <div class="preview-thumbnail">
+                                        <div class="preview-icon bg-dark rounded-circle">
+                                            <i class="mdi mdi-layers text-danger"></i>
+                                        </div>
+                                    </div>
+                                    <div class="preview-item-content">
+                                        <p class="preview-subject ellipsis mb-1">Software Testing</p>
+                                    </div>
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <p class="p-3 mb-0 text-center">See all projects</p>
+                            </div>
+                        </li>
+                        <!--
                 <li class="nav-item nav-settings d-none d-lg-block">
                 <a class="nav-link" href="#">
                   <i class="mdi mdi-view-grid"></i>
@@ -249,41 +276,42 @@
               
             </ul>
           -->
-            <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
+                        <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
               <span class="mdi mdi-format-line-spacing"></span>
             </button>
-          </div>
-        </nav>
-        <!-- partial -->
-        <div class="main-panel">
-          <div class="content-wrapper">
-            <div class="row">
-              <div class="col grid-margin stretch-card">
-                <div class="card">
-                  <div class="card-body">
-                    <div class="d-flex flex-row justify-content-between">
-                      <h4 class="card-title mb-1">Target List</h4>
-                    </div>
+                </div>
+            </nav>
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper">
                     <div class="row">
-                      <div class="col-12">
-                        <div class="preview-list">
-                          {% for data in target_data %}
-                            <div class="preview-item border-bottom">
-                              <div class="preview-thumbnail">
-                                <div class="preview-icon bg-primary">
-                                  <img src="{{data['favicon_url']}}" style="width: 30px; height: 30px;" onerror="this.src='/images/favicon.png';">
-                                  <!-- <i class="mdi mdi-file-document"></i> -->
-                                </div>
-                              </div>
-                              <div class="preview-item-content d-sm-flex flex-grow">
-                                <div class="flex-grow">
-                                  <h6 class="preview-subject"><a href="/detail/{{data['dir_name']}}">{{data["dir_name"]}}</a></h6>
-                                  <p class="text-muted mb-0">{{data["file_count"]}} files</p>
-                                </div>
-                              </div>
-                            </div>
-                          {% endfor %}
-                          <!-- <div class="preview-item border-bottom">
+                        <div class="col grid-margin stretch-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex flex-row justify-content-between">
+                                        <h4 class="card-title mb-1">Target List</h4>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="preview-list">
+                                                {% for data in target_data %}
+                                                <div class="preview-item border-bottom">
+                                                    <div class="preview-thumbnail">
+                                                        <div class="preview-icon bg-primary">
+                                                            <img src="{{data['favicon_url']}}" style="width: 30px; height: 30px;" onerror="this.src='/images/favicon.png';">
+                                                            <!-- <i class="mdi mdi-file-document"></i> -->
+                                                        </div>
+                                                    </div>
+                                                    <div class="preview-item-content d-sm-flex flex-grow">
+                                                        <div class="flex-grow">
+                                                            <h6 class="preview-subject"><a href="/detail/{{data['dir_name']}}">{{data["dir_name"]}}</a></h6>
+                                                            <p class="text-muted mb-0">{{data["file_count"]}} files</p>
+                                                        </div>
+                                                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-target" data-value="{{data['dir_name']}}" onclick='setDeleteTarget(this)'>Delete</button>
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                                <!-- <div class="preview-item border-bottom">
                             <div class="preview-thumbnail">
                               <div class="preview-icon bg-success">
                                 <i class="mdi mdi-cloud-download"></i>
@@ -351,14 +379,14 @@
                               </div>
                             </div>
                           </div> -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                      </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <!--
+                    <!--
             <div class="row">
               <div class="col-md-6 col-xl-4 grid-margin stretch-card">
                 <div class="card">
@@ -492,7 +520,7 @@
                           </div>
                           <i class="remove mdi mdi-close-box"></i>
                         </li> -->
-                        <!-- <li class="completed">
+                    <!-- <li class="completed">
                           <div class="form-check form-check-primary">
                             <label class="form-check-label">
                               <input class="checkbox" type="checkbox" checked> Prepare for presentation </label>
@@ -520,37 +548,38 @@
               </div>
             </div>
           -->
-          <!-- content-wrapper ends -->
+                    <!-- content-wrapper ends -->
 
-          
-          <!-- partial -->
+
+                    <!-- partial -->
+                </div>
+                <!-- main-panel ends -->
+            </div>
+            <!-- page-body-wrapper ends -->
         </div>
-        <!-- main-panel ends -->
-      </div>
-      <!-- page-body-wrapper ends -->
-    </div>
-    <!-- container-scroller -->
-    <!-- plugins:js -->
-    <script src="/vendors/js/vendor.bundle.base.js"></script>
-    <!-- endinject -->
-    <!-- Plugin js for this page -->
-    <script src="/vendors/chart.js/Chart.min.js"></script>
-    <script src="/vendors/progressbar.js/progressbar.min.js"></script>
-    <script src="/vendors/jvectormap/jquery-jvectormap.min.js"></script>
-    <script src="/vendors/jvectormap/jquery-jvectormap-world-mill-en.js"></script>
-    <script src="/vendors/owl-carousel-2/owl.carousel.min.js"></script>
-    <!-- End plugin js for this page -->
-    <!-- inject:js -->
-    <script src="/js/off-canvas.js"></script>
-    <script src="/js/hoverable-collapse.js"></script>
-    <script src="/js/misc.js"></script>
-    <script src="/js/settings.js"></script>
-    <!-- endinject -->
-    <!-- Custom js for this page -->
-    <script src="/js/dashboard.js"></script>
-    <!-- End custom js for this page -->
+        <!-- container-scroller -->
+        <!-- plugins:js -->
+        <script src="/vendors/js/vendor.bundle.base.js"></script>
+        <!-- endinject -->
+        <!-- Plugin js for this page -->
+        <script src="/vendors/chart.js/Chart.min.js"></script>
+        <script src="/vendors/progressbar.js/progressbar.min.js"></script>
+        <script src="/vendors/jvectormap/jquery-jvectormap.min.js"></script>
+        <script src="/vendors/jvectormap/jquery-jvectormap-world-mill-en.js"></script>
+        <script src="/vendors/owl-carousel-2/owl.carousel.min.js"></script>
+        <!-- End plugin js for this page -->
+        <!-- inject:js -->
+        <script src="/js/off-canvas.js"></script>
+        <script src="/js/hoverable-collapse.js"></script>
+        <script src="/js/misc.js"></script>
+        <script src="/js/settings.js"></script>
+        <!-- endinject -->
+        <!-- Custom js for this page -->
+        <script src="/js/dashboard.js"></script>
+        <!-- End custom js for this page -->
 
-    <script src="/js/page/index.js"></script>
-    <script src="/js/todolist.js"></script>
-  </body>
+        <script src="/js/page/index.js"></script>
+        <script src="/js/todolist.js"></script>
+</body>
+
 </html>

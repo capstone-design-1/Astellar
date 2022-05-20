@@ -8,21 +8,25 @@ let detect_filter_list = [];
 let method_filter_list = ["GET", "POST"];
 let interval_check_auto_bot;
 
-window.onload = function(){
-    if(refresh_btn.length != 0){
+// subdomain count
+let shown_count = 0;
+let subdomain_data = [];
+
+window.onload = function() {
+    if (refresh_btn.length != 0) {
         refresh_btn[0].addEventListener("click", () => { searchSubdomain(target_name); });
     }
 
-    for(let method_chk of method_checkbox){
+    for (let method_chk of method_checkbox) {
         method_chk.addEventListener("click", (e) => setMethodFilter(e))
     }
 
     socket.on('connect', function() {
-        socket.emit('message', {"target": target_name, "monitor_path" : monitor_path});
+        socket.emit('message', { "target": target_name, "monitor_path": monitor_path });
     });
     socket.on('alive-check', function() {
         console.log("alive-check");
-        socket.emit('alive-response', {"target": target_name});
+        socket.emit('alive-response', { "target": target_name });
     });
     socket.on("receive", function(res) {
         const data = res["data"];
@@ -30,8 +34,8 @@ window.onload = function(){
 
         console.log("[debug] ", data);
 
-        for(let key of key_list){
-            switch(key){
+        for (let key of key_list) {
+            switch (key) {
                 case "packet_count":
                     setPacketCount(data[key]);
                     break;
@@ -50,7 +54,7 @@ window.onload = function(){
                     setCveDetail(data[key]);
                     break;
                 case "auto_finish_check":
-                    if(data[key] == true){
+                    if (data[key] == true) {
                         checkAutoBotFinish(false);
                     }
                     break;
@@ -64,99 +68,96 @@ window.onload = function(){
         }
     });
 
-    function initSubdomain(target_name){
-        try{
+    function initSubdomain(target_name) {
+        try {
             fetch(`/detail/api/getSubdomain?target=${target_name}`)
-            .then((res) => res.json())
-            .then((data) => {
-                if(data.result.length != 0){
-                    setSubdomain(data);
-                }
-                else{
-                    // alert("서브도메인이 없습니다.");
-                }
-            })
-        }
-        catch (error){
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data.result.length != 0) {
+                        setSubdomain(data);
+                    } else {
+                        // alert("서브도메인이 없습니다.");
+                    }
+                })
+        } catch (error) {
             alert("서브도메인 목록을 가져오는 과정에서 에러가 발생했습니다.");
             console.log(error);
         }
     }
-    
-    function searchSubdomain(target_name){
+
+    function searchSubdomain(target_name) {
         const subdomain_selector = document.getElementsByClassName("subdomain-list")[0];
-    
-        try{
+
+        try {
             subdomain_selector.innerHTML = `분석 중입니다. <div class="lds-ring lds-ring-green"><div></div></div>`;
-    
+
             fetch(`/detail/api/subdomain?target=${target_name}`)
-            .then((res) => res.json())
-            .then((data) => {
-                if(data.result.length != 0){
-                    setSubdomain(data);
-                }
-                else{
-                    // alert("서브도메인이 없습니다.");
-                }
-            })
-        }
-        catch (error){
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data.result.length != 0) {
+                        setSubdomain(data);
+                    } else {
+                        // alert("서브도메인이 없습니다.");
+                    }
+                })
+        } catch (error) {
             alert("서브도메인 목록을 가져오는 과정에서 에러가 발생했습니다.");
             console.log(error);
         }
     }
 
 
-    function initStart(target_name){
-        try{
+    function initStart(target_name) {
+        try {
             fetch(`/api/start?target=${target_name}`)
-            .then((res) => res.json())
-            .then((data) => {
-                if(data["error"]){
-                    alert(data["message"]);
-                    // location.href='/';
-                }
-            })
-        }
-        catch{
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data["error"]) {
+                        alert(data["message"]);
+                        // location.href='/';
+                    }
+                })
+        } catch {
             alert("proxify 프로그램이 실행되지 않았습니다.");
             // location.href='/';
         }
     }
 
-    function initDetectFilter(){
+    function initDetectFilter() {
         fetch(`/detail/api/detect_filter`)
-        .then(res => res.json())
-        .then(data => {
-            const selector = document.getElementsByClassName("detect_filter")[0];
-            const html = `<div class="col-4"><input class="detect_filter_checkbox" type="checkbox" class="form-check-input" checked value="{{detect_filter}}"> {{detect_filter}}</div>`;
+            .then(res => res.json())
+            .then(data => {
+                const selector = document.getElementsByClassName("detect_filter")[0];
+                const html = `<div class="col-4"><input class="detect_filter_checkbox" type="checkbox" class="form-check-input" checked value="{{detect_filter}}"> {{detect_filter}}</div>`;
 
-            let template = '';
-            for(let detect_filter of data){
-                template += html.replace(/{{detect_filter}}/g, detect_filter);
-                detect_filter_list.push(detect_filter);
-            }
+                let template = '';
+                for (let detect_filter of data) {
+                    template += html.replace(/{{detect_filter}}/g, detect_filter);
+                    detect_filter_list.push(detect_filter);
+                }
 
-            selector.innerHTML = template;
+                selector.innerHTML = template;
 
-            const checkbox_selector = document.getElementsByClassName("detect_filter_checkbox");
-            for(let select of checkbox_selector){
-                select.addEventListener("click", (e) => {setDetectFilter(e)});
-            }
-        })
+                const checkbox_selector = document.getElementsByClassName("detect_filter_checkbox");
+                for (let select of checkbox_selector) {
+                    select.addEventListener("click", (e) => { setDetectFilter(e) });
+                }
+            })
     }
 
     initDetectFilter();
     initSubdomain(target_name);
     initStart(target_name);
 
-    socket.emit("get_realtime_data", {"target": target_name});
+    socket.emit("get_realtime_data", { "target": target_name });
 }
 
-function setSubdomain(data){
+function setSubdomain(data) {
+    subdomain_data = data;
+
     const subdomain_selector = document.getElementsByClassName("subdomain-list")[0];
     const update_time = document.getElementsByClassName("latest-update")[0];
-    const html = `<div class="preview-item border-bottom">
+    const html = `<div class="preview-item border-bottom subdomain-info" {{display}}>
                         <div class="preview-item-content d-sm-flex flex-grow">
                         <div class="flex-grow">
                             <h6 class="preview-subject"><a href="//{{subdomain}}" target="_blank">{{subdomain}}</a></h6>
@@ -168,35 +169,62 @@ function setSubdomain(data){
                     </div>`;
     const red_circle_html = `<img src='/images/red-circle.png' width='15px;'>`;
     const green_circle_html = `<img src='/images/green-circle.png' width='15px;'>`;
+    const display = `style="display:none;"`;
+    const more_html = `<br><center><button type="button" class="btn btn-primary btn-fw" onclick='moreShowSubDomain()'>More</button></center>`;
 
     subdomain_selector.innerHTML = "";
     update_time.innerHTML = `Latest update: ${data.last_search_time}`;
 
-    for(let i=0; i<data.result.length; i++){
+    for (let i = 0; i < data.result.length; i++, shown_count++) {
         let circle = '';
 
-        if(parseInt(data.result[i]["status_code"])){
+        if (parseInt(data.result[i]["status_code"])) {
             circle = (parseInt(data.result[i]["status_code"] / 100) <= 3) ? green_circle_html : red_circle_html;
-        }
-        else{
+        } else {
             circle = red_circle_html;
         }
         let template = html.replace(/{{subdomain}}/g, data.result[i]["site"])
-                            .replace("{{status_icon}}", circle)
-                            .replace("{{status_code}}", data.result[i]["status_code"]);
+            .replace("{{status_icon}}", circle)
+            .replace("{{status_code}}", data.result[i]["status_code"]);
+
+        if (i > 5) {
+            template = template.replace("{{display}}", display);
+        } else {
+            template = template.replace("{{display}}", "");
+        }
 
         subdomain_selector.innerHTML += template;
+    }
+
+    if (data.result.length != 0) {
+        subdomain_selector.innerHTML += more_html;
+    }
+}
+
+function moreShowSubDomain() {
+    const selector = document.getElementsByClassName("subdomain-info");
+
+    let count = 0;
+    for (let index = 0; index < selector.length; index++) {
+        if (selector[index].style.display == "none") {
+            selector[index].style.display = "";
+            count++;
+        }
+
+        if (count == 5)
+            break;
+
     }
 }
 
 
-function setPacketCount(packet_count){
+function setPacketCount(packet_count) {
     const selector = document.getElementsByClassName("packet-count");
     selector[0].innerHTML = packet_count;
 }
 
 
-function setWappalyzer(data){
+function setWappalyzer(data) {
     const selector = document.getElementsByClassName("wappalyer-result")[0];
     const detect_name_html = `<th class='table-wappalyzer'>{{name}}</th>`;
     const detect_detail_html = `<td>{{name}}</td>`;
@@ -220,27 +248,26 @@ function setWappalyzer(data){
                                 </table>
                             </div>
                         </div>`;
-    
+
     selector.innerHTML = "";
 
-    for(let target_name of Object.keys(data)){
+    for (let target_name of Object.keys(data)) {
 
         let th_template = '';
         let td_template = '';
-        for(let detect_name of Object.keys(data[target_name])){
-            if (detect_name == "CPE"){
+        for (let detect_name of Object.keys(data[target_name])) {
+            if (detect_name == "CPE") {
                 continue;
             }
             th_template += detect_name_html.replace("{{name}}", detect_name);
 
             let tmp = [];
-            for(let detect_detail of Object.keys(data[target_name][detect_name])){
+            for (let detect_detail of Object.keys(data[target_name][detect_name])) {
 
                 // 버전 정보가 없을 경우
-                if(data[target_name][detect_name][detect_detail].length == 0){
+                if (data[target_name][detect_name][detect_detail].length == 0) {
                     tmp.push(detect_detail);
-                }
-                else{
+                } else {
                     tmp.push(`${detect_detail} / ${data[target_name][detect_name][detect_detail]}`);
                 }
             }
@@ -249,30 +276,29 @@ function setWappalyzer(data){
         }
 
         let template = html.replace("{{target_name}}", target_name)
-                            .replace("{{detect_name}}", th_template)
-                            .replace("{{detect_detail}}", td_template);
+            .replace("{{detect_name}}", th_template)
+            .replace("{{detect_detail}}", td_template);
 
         selector.innerHTML += template;
     }
 }
 
-function setAttackVectorCount(count){
+function setAttackVectorCount(count) {
     const selector = document.getElementsByClassName("vuln-count")[0];
     selector.innerHTML = count;
 }
 
-function setAttackVector(data, filter=0){
+function setAttackVector(data, filter = 0) {
     const selector = document.getElementsByClassName("attack-vector-result")[0].querySelector("tbody");
 
-    if(prev_attack_vector.length == 0){
+    if (prev_attack_vector.length == 0) {
         selector.innerHTML = '';
     }
-    if(!filter){
-        if(prev_attack_vector.length == data.length){
+    if (!filter) {
+        if (prev_attack_vector.length == data.length) {
             return;
         }
-    }
-    else{
+    } else {
         selector.innerHTML = '';
     }
     const risk_info = `<div class="badge badge-outline-primary">Info</div>`;
@@ -287,62 +313,58 @@ function setAttackVector(data, filter=0){
                     <td width="200px"> {{risk}} </td>
                     <td width="200px"> {{time}} </td>
                 </tr>`;
-    
+
     let template = ``;
     let count = 0;
-    for(const analyze of data){
-        if(detect_filter_list.indexOf(analyze["detect_name"]) == -1){
+    for (const analyze of data) {
+        if (detect_filter_list.indexOf(analyze["detect_name"]) == -1) {
             continue;
         }
-        if(method_filter_list.indexOf(analyze["method"]) == -1){
+        if (method_filter_list.indexOf(analyze["method"]) == -1) {
             continue;
         }
-        
-        if(!filter){
-            if(prev_attack_vector.length > count){
+
+        if (!filter) {
+            if (prev_attack_vector.length > count) {
                 count++;
                 continue;
             }
         }
 
         let risk = ``;
-        if(analyze["risk"] == "info"){
+        if (analyze["risk"] == "info") {
             risk = risk_info;
-        }
-        else if(analyze["risk"] == "low"){
+        } else if (analyze["risk"] == "low") {
             risk = risk_low;
-        }
-        else if(analyze["risk"] == "medium"){
+        } else if (analyze["risk"] == "medium") {
             risk = risk_medium;
-        }
-        else{
+        } else {
             risk = risk_high;
         }
 
         let path = new URL(analyze["url"]);
         path = path.href.replace(path.origin, "");
-        
-        if(path.length > 35){
+
+        if (path.length > 35) {
             path = path.substring(0, 35) + "...";
         }
 
         let tmp_vuln_parameter = ''
-        if(typeof analyze["vuln_parameter"] != "string"){
+        if (typeof analyze["vuln_parameter"] != "string") {
             tmp_vuln_parameter = analyze["vuln_parameter"].join(", ")
-        }
-        else{
+        } else {
             tmp_vuln_parameter = analyze["vuln_parameter"];
         }
 
 
         template += html.replace("{{detect_name}}", analyze["detect_name"])
-                        .replace("{{method}}", analyze["method"])
-                        .replace("{{full_url}}", escapeHTML(analyze["url"]))
-                        .replace("{{url}}", escapeHTML(path))
-                        .replace("{{vuln_parameter}}", tmp_vuln_parameter)
-                        .replace("{{risk}}", risk)
-                        .replace("{{time}}", analyze["detect_time"])
-                        .replace("{{data-value}}", escapeHTML(JSON.stringify(analyze)));
+            .replace("{{method}}", analyze["method"])
+            .replace("{{full_url}}", escapeHTML(analyze["url"]))
+            .replace("{{url}}", escapeHTML(path))
+            .replace("{{vuln_parameter}}", tmp_vuln_parameter)
+            .replace("{{risk}}", risk)
+            .replace("{{time}}", analyze["detect_time"])
+            .replace("{{data-value}}", escapeHTML(JSON.stringify(analyze)));
     }
 
     selector.innerHTML += template;
@@ -354,7 +376,7 @@ function setAttackVector(data, filter=0){
 }
 
 
-function setModal(e){
+function setModal(e) {
     const modal_packet = document.getElementsByClassName("modal-packet")[0];
     const attack_vector_detail = document.getElementsByClassName("attack-vector-detail")[0];
     const data = JSON.parse(e.dataset.value);
@@ -367,32 +389,31 @@ function setModal(e){
     // modal_body.innerHTML = data["url"];
 
     socket.emit("get_packet_detail", {
-        "target": target_name, 
-        "file_path" : data["file_path"],
-        "file_name" : data["file_name"],
-        "detect_name" : data["detect_name"],
-        "reflect_data" : {
-            "detect_name" : data["detect_name"],
-            "vuln_parameter" : data["vuln_parameter"],
-            "risk" : data["risk"]
+        "target": target_name,
+        "file_path": data["file_path"],
+        "file_name": data["file_name"],
+        "detect_name": data["detect_name"],
+        "reflect_data": {
+            "detect_name": data["detect_name"],
+            "vuln_parameter": data["vuln_parameter"],
+            "risk": data["risk"]
         }
     });
 }
 
 
-function setModalDetail(data, mode="request"){
+function setModalDetail(data, mode = "request") {
     const modal_packet = document.getElementsByClassName("modal-packet")[0];
     let packet = `<button type="button" class="btn btn-outline-info btn-fw modal-request-btn">Request</button>
                             <button type="button" class="btn btn-outline-info btn-fw modal-response-btn">Response</button><Br><Br>`;
 
-    if(mode == "request"){
+    if (mode == "request") {
         packet += `<code>${data[mode]["method"]}</code> ${data[mode]["url"]} ${data[mode]["http_protocol"] }<br>`
-    }
-    else if(mode == "response"){
+    } else if (mode == "response") {
         packet += `${data[mode]["http_protocol"]} <code>${data[mode]["status_code"]}</code> ${data[mode]["reason"] }<br>`
     }
 
-    for(let header_key in data[mode]["header"]){
+    for (let header_key in data[mode]["header"]) {
         packet += `<code>${header_key}</code>: ${escapeHTML(data[mode]["header"][header_key])}<br>`;
     }
     packet += `<br>${escapeHTML(data[mode]["body"])}`;
@@ -408,7 +429,7 @@ function setModalDetail(data, mode="request"){
 }
 
 
-function setModalDetailInfo(detail, reflect_data){
+function setModalDetailInfo(detail, reflect_data) {
     const selector = document.getElementsByClassName("attack-vector-detail")[0];
     const risk_info = `<div class="badge badge-outline-primary">Info</div>`;
     const risk_low = `<div class="badge badge-outline-success">Low</div>`;
@@ -460,49 +481,45 @@ function setModalDetailInfo(detail, reflect_data){
                     {{reference}}`;
 
     let tmp_risk = '';
-    if(reflect_data["risk"] == "info"){
+    if (reflect_data["risk"] == "info") {
         tmp_risk = risk_info;
-    }
-    else if(reflect_data["risk"] == "low"){
+    } else if (reflect_data["risk"] == "low") {
         tmp_risk = risk_low;
-    }
-    else if(reflect_data["risk"] == "medium"){
+    } else if (reflect_data["risk"] == "medium") {
         tmp_risk = risk_medium;
-    }
-    else if(reflect_data["risk"] == "high"){
+    } else if (reflect_data["risk"] == "high") {
         tmp_risk = risk_high;
     }
 
     let payload_template = '';
-    for(let payload of detail["payload"]){
+    for (let payload of detail["payload"]) {
         payload_template += payload_list_html.replace("{{data}}", escapeHTML(payload));
     }
 
     let reference_template = '';
-    for(let link of detail["reference"]){
+    for (let link of detail["reference"]) {
         reference_template += reference_list_html.replace(/{{href}}/g, link);
     }
 
     let tmp_vuln_parameter = '';
-    if(typeof reflect_data["vuln_parameter"] != "string"){
+    if (typeof reflect_data["vuln_parameter"] != "string") {
         tmp_vuln_parameter = reflect_data["vuln_parameter"].join(", ");
-    }
-    else{
+    } else {
         tmp_vuln_parameter = reflect_data["vuln_parameter"];
     }
 
     let template = html.replace("{{risk}}", tmp_risk)
-                        .replace("{{detect_name}}", reflect_data["detect_name"])
-                        .replace("{{vuln_parameter}}", tmp_vuln_parameter)
-                        .replace("{{description}}", detail["description"])
-                        .replace("{{payload}}", payload_template)
-                        .replace("{{reference}}", reference_template);
-    
+        .replace("{{detect_name}}", reflect_data["detect_name"])
+        .replace("{{vuln_parameter}}", tmp_vuln_parameter)
+        .replace("{{description}}", detail["description"])
+        .replace("{{payload}}", payload_template)
+        .replace("{{reference}}", reference_template);
+
     selector.innerHTML = template;
 }
 
 
-function setCve(){
+function setCve() {
     const selector = document.getElementsByClassName("cve-detail")[0];
     selector.innerHTML = `<div class="col-2">
                             </div>
@@ -517,11 +534,11 @@ function setCve(){
                             <div class="col-2">
                             </div>`;
     socket.emit("get_cve", {
-        "target" : target_name
+        "target": target_name
     })
 }
 
-function setCveDetail(data){
+function setCveDetail(data) {
     const selector = document.getElementsByClassName("cve-detail")[0];
     const cve_name = `<li>{{cve_name}}</li>`;
     const cve_more_name = `<details>
@@ -534,132 +551,127 @@ function setCveDetail(data){
                             {{cve_list}}
                         </ul>
                     </div>`;
-    
+
     selector.innerHTML = "";
 
-    for(let detect_name of Object.keys(data["cve"])){
+    for (let detect_name of Object.keys(data["cve"])) {
         let cve_name_template = '';
         let tmp_template = '';
 
-        for(let idx in data["cve"][detect_name]){
-            if(idx >= 10){
+        for (let idx in data["cve"][detect_name]) {
+            if (idx >= 10) {
                 tmp_template += cve_name.replace("{{cve_name}}", data["cve"][detect_name][idx]);
-            }
-            else{
+            } else {
                 cve_name_template += cve_name.replace("{{cve_name}}", data["cve"][detect_name][idx]);
             }
         }
 
-        if(tmp_template.length != 0){
+        if (tmp_template.length != 0) {
             cve_name_template += cve_more_name.replace("{{tmp_cve_name}}", tmp_template);
         }
 
         selector.innerHTML += html.replace("{{cve_list}}", cve_name_template)
-                        .replace("{{detect_name}}", detect_name);
+            .replace("{{detect_name}}", detect_name);
     }
 }
 
-function setDetectFilter(e){
+function setDetectFilter(e) {
     const checkbox = e.target;
 
-    if(checkbox.checked == true){
-        if(detect_filter_list.indexOf(checkbox.value) == -1){
+    if (checkbox.checked == true) {
+        if (detect_filter_list.indexOf(checkbox.value) == -1) {
             detect_filter_list.push(checkbox.value);
         }
-    }
-    else if(checkbox.checked == false){
+    } else if (checkbox.checked == false) {
         detect_filter_list = detect_filter_list.filter((element) => element != checkbox.value);
     }
 
     setAttackVector(prev_attack_vector, 1);
 }
 
-function setMethodFilter(e){
+function setMethodFilter(e) {
     const checkbox = e.target;
 
-    if(checkbox.checked == true){
-        if(method_filter_list.indexOf(checkbox.value) == -1){
+    if (checkbox.checked == true) {
+        if (method_filter_list.indexOf(checkbox.value) == -1) {
             method_filter_list.push(checkbox.value);
         }
-    }
-    else if(checkbox.checked == false){
+    } else if (checkbox.checked == false) {
         method_filter_list = method_filter_list.filter((element) => element != checkbox.value);
     }
 
     setAttackVector(prev_attack_vector, 1);
 }
 
-function getOSINT(){
+function getOSINT() {
     fetch(`/detail/api/get_osint?target=${target_name}`)
-    .then(data => data.json())
-    .then((res) => {
-        const selector = document.getElementsByClassName("osint-detail")[0];
-        const li_template = `<li> {{data}} </li>`;
-        const html = `  <div class="col-6">
+        .then(data => data.json())
+        .then((res) => {
+            const selector = document.getElementsByClassName("osint-detail")[0];
+            const li_template = `<li> {{data}} </li>`;
+            const html = `  <div class="col-6">
                             <h4 class="text-success"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{detect_name}} </h4>
                             <ul class="list-ticked">
                                 {{li_list}}
                             </ul>
                         </div>`;
 
-        let template = ``;
-        for(let key of Object.keys(res)){
-            let li_data = ``;
+            let template = ``;
+            for (let key of Object.keys(res)) {
+                let li_data = ``;
 
-            for(let list of res[key]){
-                if(typeof list == "string" && list.indexOf("http") == 0){
-                    list = `<a href='${list}' target='_blank'>${list.substr(0, 20) + "..."}</a>`;
+                for (let list of res[key]) {
+                    if (typeof list == "string" && list.indexOf("http") == 0) {
+                        list = `<a href='${list}' target='_blank'>${list.substr(0, 20) + "..."}</a>`;
+                    }
+
+                    li_data += li_template.replace("{{data}}", list);
                 }
 
-                li_data += li_template.replace("{{data}}", list);
+                if (li_data.length != 0) {
+                    template += html.replace("{{detect_name}}", key)
+                        .replace("{{li_list}}", li_data);
+                }
             }
 
-            if (li_data.length != 0){
-                template += html.replace("{{detect_name}}", key)
-                                .replace("{{li_list}}", li_data);
-            }
-        }
-
-        selector.innerHTML = template;
-    })
+            selector.innerHTML = template;
+        })
 }
 
-function escapeHTML(data){
+function escapeHTML(data) {
     return data.replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/'/g, "&apos;")
-                .replace(/"/g, "&quot;");
+        .replace(/>/g, "&gt;")
+        .replace(/'/g, "&apos;")
+        .replace(/"/g, "&quot;");
 }
 
 let autoStatus = false;
 
-function autoStart(){
-    if(autoStatus){
+function autoStart() {
+    if (autoStatus) {
         //autoBot 끄기
-        autoStatus=false;
+        autoStatus = false;
         clearInterval(interval_check_auto_bot);
-        socket.emit("auto_stop", {"target" : target_name});
+        socket.emit("auto_stop", { "target": target_name });
         document.getElementsByClassName("auto-bot")[0].innerHTML = "Start Auto Bot";
-    }
-    else{
-        socket.emit('auto', {"target": target_name});
+    } else {
+        socket.emit('auto', { "target": target_name });
         // alert("auto bot을 시작 합니다.");
-        autoStatus=true;
+        autoStatus = true;
         checkAutoBotFinish(true);
         document.getElementsByClassName("auto-bot")[0].innerHTML = "Stop Auto Bot";
     }
 }
 
-function checkAutoBotFinish(bool){
-    if(bool == true){
+function checkAutoBotFinish(bool) {
+    if (bool == true) {
         interval_check_auto_bot = setInterval(() => {
-            socket.emit("auto_check_finish", {"target" : target_name});
+            socket.emit("auto_check_finish", { "target": target_name });
         }, 2000);
-    }
-    else{
+    } else {
         clearInterval(interval_check_auto_bot);
         alert("auto bot 기능이 끝났습니다.");
-        autoStatus=false;
+        autoStatus = false;
         document.getElementsByClassName("auto-bot")[0].innerHTML = "Start Auto Bot";
     }
 }

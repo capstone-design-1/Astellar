@@ -114,6 +114,7 @@ class AttackVector:
             if len(data) != 2:
                 continue
             name, value = data
+            value = unquote(value)
             for tag in input_tag :
                 try:
                     if tag["name"] == name and tag["value"] == value:
@@ -167,7 +168,7 @@ class AttackVector:
 
             for meta_tag in html.find_all("meta"):
                 try:
-                    if data[1] in meta_tag["content"]:
+                    if unquote(data[1]) in meta_tag["content"]:
                         vuln_param.append(data[0])
                 except KeyError:
                     ## meta tag 속성에 content 가 없는 경우
